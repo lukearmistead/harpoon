@@ -24,6 +24,9 @@ me/network/      LinkedIn export under export/ (gitignored); rosters tracked
                  They live there and nowhere else: do not restate them.
 harpoon/         engine code, tests/ beside it
 check-citations.sh  fails on a cited path that is missing and not gitignored
+export-template.sh  publishes the engine files to the public template repo;
+                 the one deliberate door, and personal paths are never on
+                 its allowlist
 ```
 
 Read `me/criteria.md` before evaluating anything; `me/experience.md`,

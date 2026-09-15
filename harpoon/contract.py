@@ -27,3 +27,27 @@ class Posting:
     def __post_init__(self) -> None:
         if not self.company:
             raise ValueError("a posting with no company is not a posting")
+
+
+@dataclass(frozen=True)
+class Lead:
+    """A discovery hit: cheaper than a Posting, judged before it becomes one.
+
+    The sweep's machine lane emits these; the judgment pass in the main
+    thread promotes survivors to Posting rows with the fields discovery
+    cannot know (org location, warm connection).
+    """
+
+    company: str
+    title: str
+    location: str
+    band: str | None
+    url: str | None
+    source: str
+
+    def __post_init__(self) -> None:
+        if not self.company:
+            raise ValueError("a lead with no company is not a lead")
+
+    def key(self) -> str:
+        return self.url or f"{self.company}|{self.title}|{self.location}"

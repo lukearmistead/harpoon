@@ -8,3 +8,4 @@ me/*.pdf
 .venv/
 __pycache__/
 .pytest_cache/
+.sweep-seen.json

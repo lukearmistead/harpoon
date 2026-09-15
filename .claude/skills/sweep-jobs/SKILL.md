@@ -21,32 +21,49 @@ rounds in it, which curated or sector boards exist, whether a LinkedIn
 export sits in `me/network/export/`. Write the catalog in the file's table
 shape and keep going.
 
-## Step 1: Source, in parallel
+## Step 1: Source
 
-**Split agents by source, never by topic.** One agent per channel cluster
-in `me/channels.md`, no overlap. The network cluster is the highest-yield
-channel and the only one nobody else can run: former colleagues come from
-`find-former-colleagues.py` in this directory, not a fresh derivation.
-Verify any named service with a search; note what died in `me/channels.md`.
+**Machine lane first, and it is the default.** Run:
 
-**Every agent returns the same contract, and nothing more:** company and
-one line on what it does; where the data or AI org sits, marked verified or
-unverified; seat title and canonical URL on the company's own board, or
-"none open" (never omit it: a blank reads as a live seat); warm connection
-with name and role, or none; which source produced it.
+    python3 -m harpoon.sweep
+
+It fetches every cataloged endpoint in `me/channels.md` concurrently,
+drops what `pipeline.md` and `applications/` already decided, what earlier
+runs already surfaced (`.sweep-seen.json`, gitignored; safe to lose), what
+fails the location hard line, and what fails the title class, then prints
+only the new leads plus a count per drop reason. Read the drop counts:
+a silent filter bug hides there, and an ERROR line is a dead channel to
+fix or note in `me/channels.md`, never an empty one. A first run after a
+long gap is big; the next is the delta.
+
+**Agents run only the channels a script cannot** (rows in the catalog
+with no Endpoint), split by source, never by topic, no overlap:
+
+- **Network** is the highest-yield channel and the only one nobody else
+  can run: former colleagues come from `find-former-colleagues.py` in this
+  directory, not a fresh derivation.
+- **Recent raises** and verifying a named service need web search. The
+  contract shrinks to company names, one line on what each does, and which
+  source produced it. **Never board contents**: resolve each name with
+  `python3 -m harpoon.sweep probe <company>`, which finds the ATS board
+  and prints its open seats. A name that survives judgment gets its
+  endpoint recorded in `me/channels.md` so it is machine-lane forever.
 
 **Agents source. They do not filter.** Criteria get applied once, in the
-main thread, so five agents cannot apply them five ways. Each agent verifies
-rather than recalls and marks the unverified as unverified.
+main thread, so five agents cannot apply them five ways. Each agent
+verifies rather than recalls and marks the unverified as unverified.
 
 ## Step 2: Filter
 
 Run the gates in order, cheapest first. Stop at the first failure, name it.
 
-1. **Already decided.** Grep `pipeline.md` and `applications/`. Never
+1. **Already decided.** The machine lane precomputes this; grep
+   `pipeline.md` and `applications/` for agent-sourced names. Never
    re-surface anything Closed or rejected without saying what changed.
 2. **The hard lines.** Whatever `me/criteria.md` marks as a stop, checked
-   from the posting and the company's own pages, not an aggregator.
+   from the posting and the company's own pages, not an aggregator. The
+   machine lane pre-applies the location line textually; a posting that
+   says "Remote" and means "Remote, EST only" still dies here.
 3. **Alive and growing.** Last raise and its date, layoff history, revenue
    direction. Debt as the most recent round is a signal, not a footnote.
 4. **The seat, on the company's own board.** An aggregator hit is a lead, not
