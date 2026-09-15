@@ -11,14 +11,16 @@
 set -uo pipefail
 cd "$(dirname "$0")"
 
-files() { git ls-files --cached --others --exclude-standard '*.md'; }
+# -z + xargs -0: a tracked file whose own path contains spaces must reach
+# grep as one argument, not two bogus ones.
+files() { git ls-files -z --cached --others --exclude-standard '*.md'; }
 
 cited=$(
   {
     # `me/experience.md`, `applications/`, `pipeline.md`
-    files | xargs grep -noE '`([A-Za-z0-9_.-]+(/[A-Za-z0-9_. -]+)+/?|[A-Za-z0-9_.-]+\.(md|sh))`' | tr -d '`'
+    files | xargs -0 grep -noE '`([A-Za-z0-9_.-]+(/[A-Za-z0-9_. -]+)+/?|[A-Za-z0-9_.-]+\.(md|sh))`' | tr -d '`'
     # [file](applications/acme-health/company.md), skipping URLs and anchors
-    files | xargs grep -noE '\]\([A-Za-z0-9_.][A-Za-z0-9_./ -]*\)' | tr -d ')' | sed 's/](//'
+    files | xargs -0 grep -noE '\]\([A-Za-z0-9_.][A-Za-z0-9_./ -]*\)' | tr -d ')' | sed 's/](//'
   } | sort -u
 )
 
