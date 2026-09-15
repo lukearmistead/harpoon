@@ -75,7 +75,7 @@ nothing here needs that on day one.
    interview, write the debrief while it is fresh.
 6. **Feed it back.** A lesson worth keeping becomes a criteria change or a
    channel note in the same turn it is learned, and every graded call lands
-   in `evals.md`.
+   in `evals/grades.csv`.
 
 ## Using it day to day
 
@@ -102,7 +102,7 @@ not only when it disagrees with itself.
 
 ```
 pipeline.md         the board. Stage, next action, overrides, rejections
-evals.md            the misclassification log. Graded calls, in the machine
+evals/grades.csv    the misclassification log. Graded calls, in the machine
                     learning sense, that drive skill fixes
 applications/       one directory per company. company.md holds the research
                     and its dated log, then the resume variant, the cover
@@ -122,7 +122,7 @@ me/network/         LinkedIn export under export/, derived rosters beside it
                     and reference files sit inside their skill directory
 harpoon/            engine code with tests/ beside it
 CLAUDE.md           the rules the copilot follows
-check-citations.sh  fails on a cited path that is missing and not gitignored
+scripts/check-citations.sh  fails on a cited path that is missing and not gitignored
 ```
 
 ## Why markdown, when the resume ends up a PDF

@@ -9,7 +9,12 @@ in `me/criteria.md` and win when they disagree.
 ```
 pipeline.md      single source of truth for stage and next action, never
                  stale. Opens with the verdict grammar decisions follow.
-evals.md         the misclassification log: graded calls, dated, append-only
+evals/           the eval loop, all of it: per-step prediction logs, one
+                 dated CSV per filter step per run with every lead the step
+                 saw and its pass or drop call, the judgment layer included;
+                 and grades.csv, the append-only misclassification log those
+                 predictions are graded into (date, skill, step, prediction,
+                 truth, fix)
 applications/    one directory per company: company.md (research + dated
                  log), variant, letter, form-fill.md, prep, debriefs, PDFs
 me/criteria.md   what the candidate wants and how to work with them
@@ -23,8 +28,8 @@ me/network/      LinkedIn export under export/ (gitignored); rosters tracked
 .claude/skills/  the seven procedures, their scripts and reference files.
                  They live there and nowhere else: do not restate them.
 harpoon/         engine code, tests/ beside it
-check-citations.sh  fails on a cited path that is missing and not gitignored
-export-template.sh  publishes the engine files to the public template repo;
+scripts/check-citations.sh  fails on a cited path that is missing and not gitignored
+scripts/export-template.sh  publishes the engine files to the public template repo;
                  the one deliberate door, and personal paths are never on
                  its allowlist
 ```
@@ -47,10 +52,10 @@ read `## Voice` in `me/experience.md` first. A generic draft is wrong.
 
 - Ask before committing, always. Edit freely, say what is uncommitted, wait.
 - A status change updates `pipeline.md` the same turn, dated, unasked; a
-  rejection also lands in `evals.md`. A `me/meetings/` note moves stage,
+  rejection also lands in `evals/grades.csv`. A `me/meetings/` note moves stage,
   verdict, and next action the same turn, or the meeting didn't happen.
 - Decisions are append-only: a wrong verdict gets a dated correction,
-  never an edit, and the correction also lands in `evals.md`.
+  never an edit, and the correction also lands in `evals/grades.csv`.
 - After any interview, prompt for a debrief into `applications/` while
   fresh; a fumbled question joins open questions; prep loads all debriefs.
 - Warm paths: grep `me/network/export/Connections.csv`, never re-derive;
@@ -96,8 +101,10 @@ read `## Voice` in `me/experience.md` first. A generic draft is wrong.
 - A lesson worth keeping becomes a rule the turn it is learned: about this
   candidate, in `me/criteria.md`; engine-general, offered as a PR upstream.
   Engine files are replaced wholesale; a personal rule in one vanishes.
-- Improvement comes from `evals.md`, not a change record: a graded call
-  gets a dated line (skill, prediction, truth) that turn. Grades are
-  noisy: patterns amend the skill, noted on the line; git logs changes.
-- Do not name a path that does not exist. `check-citations.sh` reports
+- Improvement comes from `evals/grades.csv`, not a change record: a graded
+  call gets a dated row (skill, step, prediction, truth, fix) the turn it is
+  graded, naming the step whose call was wrong. A single grade is a noisy
+  label; three misses of one shape amend the skill, noted in the row's fix
+  column so the log shows which fixes paid off. Git logs the changes.
+- Do not name a path that does not exist. `scripts/check-citations.sh` reports
   dead ones; run it after editing any rules file. Nothing runs it for you.

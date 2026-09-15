@@ -95,5 +95,5 @@ not in that line, the claims in the file are not sourced.
 
 - Update the company's row on `pipeline.md`: stage, date, next action.
 - If the verdict is a pass, move the row to Closed with the reason, dated.
-- Run `./check-citations.sh`.
+- Run `./scripts/check-citations.sh`.
 - No em dashes anywhere in the file.
