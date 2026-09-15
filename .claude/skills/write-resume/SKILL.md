@@ -75,4 +75,4 @@ education, then the sourcing line.
 
 - The resume ends with a line naming what was read to write it.
 - Reread it against the barred list, since drafts drift toward the stronger
-  claim, then run `./check-citations.sh` and ask before committing.
+  claim, then run `./scripts/check-citations.sh` and ask before committing.

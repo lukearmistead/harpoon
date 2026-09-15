@@ -31,7 +31,15 @@ It fetches every cataloged endpoint in `me/channels.md` concurrently,
 drops what `pipeline.md` and `applications/` already decided, what earlier
 runs already surfaced (`.sweep-seen.json`, gitignored; safe to lose), what
 fails the location hard line, and what fails the title class, then prints
-only the new leads plus a count per drop reason. Read the drop counts:
+only the new leads plus a count per drop reason, and logs predictions to
+`evals/<date>-<run>-<step>.csv`: one file per filter step, every lead the
+step saw with its pass or drop call, so each step's error rate is
+measurable and improvable on its own. `python3 -m harpoon.sweep audit`
+rebuilds the logs from all live postings, ignoring the seen-cache. The
+judgment pass writes its own `evals/<date>-judgment.csv` (board,
+near-miss, or reject per company, gate named); a call that proves wrong
+gets a dated row in `evals/grades.csv` naming the step. Read the drop
+counts:
 a silent filter bug hides there, and an ERROR line is a dead channel to
 fix or note in `me/channels.md`, never an empty one. A first run after a
 long gap is big; the next is the delta.
@@ -106,7 +114,7 @@ from trusting a summary over a source. Lessons that cost a day each:
   wrong one gets a dated correction under it, never an edit.
 - No open seat is not a rejection when the problem and the office are
   right: the next action there is a person.
-- Run `./check-citations.sh`. Nothing runs it for you.
+- Run `./scripts/check-citations.sh`. Nothing runs it for you.
 
 ## Step 4: Stop
 

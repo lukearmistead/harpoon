@@ -9,6 +9,7 @@ ChannelError so it surfaces as an error row, never as "nothing new".
 import html as htmllib
 import json
 import re
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -134,6 +135,10 @@ def _getro_pages(network_id, query, loc):
         yield from (_getro_lead(j, network_id) for j in jobs)
         page += 1
         if not jobs or page * 100 >= min(res.get("count", 0), 1200):
+            if page * 100 < min(res.get("count", 0), 1200):
+                print(f"getro:{network_id}: short result, {page * 100} of "
+                      f"{res.get('count')} for {query!r}; rerun to catch the rest",
+                      file=sys.stderr)
             return
 
 
@@ -181,7 +186,10 @@ def _consider_pages(host, board, hdrs, query):
         jobs = data.get("jobs", [])
         yield from (_consider_lead(j, host) for j in jobs)
         cursor = (data.get("meta") or {}).get("sequence", cursor + len(jobs))
-        if not jobs or cursor >= data.get("total", 0):
+        if not jobs or cursor >= min(data.get("total", 0), 1500):
+            if cursor < min(data.get("total", 0), 1500):
+                print(f"consider:{host}: short result, {cursor} of "
+                      f"{data.get('total')}; rerun to catch the rest", file=sys.stderr)
             return
 
 
