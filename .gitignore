@@ -1,0 +1,10 @@
+# Ignore only what is rebuildable or re-exportable. Everything original is
+# tracked: this instance repo is private, and pushing it is the backup.
+.DS_Store
+.claude/settings.local.json
+me/network/export/
+applications/*/*.pdf
+me/*.pdf
+.venv/
+__pycache__/
+.pytest_cache/
