@@ -1,0 +1,16 @@
+[project]
+name = "harpoon"
+version = "0.1.0"
+description = "Engine code for the Harpoon job search repo: schemas now, ATS fetchers next"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
