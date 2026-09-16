@@ -94,6 +94,6 @@ have gone to another company. If yes, the first paragraph is wrong.
   `resume.typ` beside it, so the markdown stays diffable. Check the
   rendered PDF rather than trusting the marker.
 - **Drafting is not applying.** Submitting is the candidate's action. The
-  row's next action says the drafts are ready; it moves to `applied` on
-  the day they submit.
+  row's next action says the drafts are ready; the status moves to `applied`
+  on the day they submit.
 - Run `./scripts/check-citations.sh`. Ask before committing.

@@ -14,8 +14,18 @@ row says so.
 | Lever | `https://api.lever.co/v0/postings/<slug>?mode=json` |
 | SmartRecruiters | `https://api.smartrecruiters.com/v1/companies/<slug>/postings` |
 | Workable | `https://apply.workable.com/api/v1/widget/accounts/<slug>?details=true` |
+| Rippling | `https://api.rippling.com/platform/api/ats/v1/board/<slug>/jobs` |
 
-Ashby returns 403 without a `User-Agent` header.
+Ashby returns 403 without a `User-Agent` header. Rippling answers no bands and
+carries its slug in the careers page's `data-job-board-id` attribute, beside the
+embed script served from static-assets.ripplingcdn.com that names the ATS.
+
+**Read the careers page HTML before concluding a company has no board.** The
+embed script names the ATS and a data attribute usually carries the slug, and
+neither needs the page to render. Failing that, search the web for one real
+posting and read the slug out of its apply URL: a numeric suffix defeats name
+variants, which is how an 80-posting Greenhouse board at `springhealth66` was
+recorded as no board at all.
 
 **Ask the ATS for bands before going anywhere else.** Ashby returns them
 with `includeCompensation=true` and Greenhouse embeds them in

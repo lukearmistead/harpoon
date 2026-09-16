@@ -7,7 +7,7 @@ in `me/criteria.md` and win when they disagree.
 ## Layout
 
 ```
-pipeline.md      single source of truth for stage and next action, never
+pipeline.md      single source of truth for status and next action, never
                  stale. Opens with the verdict grammar decisions follow.
 evals/           the eval loop, all of it: per-step prediction logs, one
                  dated CSV per filter step per run with every lead the step
@@ -52,7 +52,7 @@ read `## Voice` in `me/experience.md` first. A generic draft is wrong.
 
 - Ask before committing, always. Edit freely, say what is uncommitted, wait.
 - A status change updates `pipeline.md` the same turn, dated, unasked; a
-  rejection also lands in `evals/grades.csv`. A `me/meetings/` note moves stage,
+  rejection also lands in `evals/grades.csv`. A `me/meetings/` note moves status,
   verdict, and next action the same turn, or the meeting didn't happen.
 - Decisions are append-only: a wrong verdict gets a dated correction,
   never an edit, and the correction also lands in `evals/grades.csv`.

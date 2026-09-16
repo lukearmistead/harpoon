@@ -93,7 +93,7 @@ not in that line, the claims in the file are not sourced.
 
 ## Finish
 
-- Update the company's row on `pipeline.md`: stage, date, next action.
-- If the verdict is a pass, move the row to Closed with the reason, dated.
+- Update the company's row on `pipeline.md`: status, date, next action.
+- If the verdict is a pass, set the status to `passed` with the reason, dated.
 - Run `./scripts/check-citations.sh`.
 - No em dashes anywhere in the file.
