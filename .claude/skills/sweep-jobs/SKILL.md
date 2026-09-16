@@ -67,7 +67,7 @@ Run the gates in order, cheapest first. Stop at the first failure, name it.
 
 1. **Already decided.** The machine lane precomputes this; grep
    `pipeline.md` and `applications/` for agent-sourced names. Never
-   re-surface anything Closed or rejected without saying what changed.
+   re-surface a `rejected` or `passed` row without saying what changed.
 2. **The hard lines.** Whatever `me/criteria.md` marks as a stop, checked
    from the posting and the company's own pages, not an aggregator. The
    machine lane pre-applies the location line textually; a posting that
@@ -105,8 +105,11 @@ from trusting a summary over a source. Lessons that cost a day each:
 
 ## Step 3: Put it on the board
 
-- Survivors go on `pipeline.md`: stage, next action naming a person or a
-  posting, the board URL, any warm connection by name and role.
+- Survivors go on `pipeline.md`: status, next action naming a person or a
+  posting, the board URL, any warm connection by name and role. A survivor
+  with a next action is a `lead`; one worth keeping with nothing to do is a
+  `watch`, which means adding its board to the `me/channels.md` watchlist in
+  the same turn, because that row is what does the watching.
 - **Rejections go under Swept and rejected** as one dated line in the
   verdict grammar `pipeline.md` opens with. A gate 2, 3 or 4 failure is a
   fact about today, so add what would bring it back; a gate 5 or 6 failure

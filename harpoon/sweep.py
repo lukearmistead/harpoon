@@ -17,8 +17,10 @@ import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from typing import NamedTuple
 
 from harpoon.boards import FETCHERS, ChannelError
+from harpoon.watch import meets
 
 ROOT = Path(__file__).resolve().parent.parent
 SEEN = ROOT / ".sweep-seen.json"
@@ -48,14 +50,30 @@ def norm(s):
     return re.sub(r"[^a-z0-9]", "", s.lower())
 
 
+class Channel(NamedTuple):
+    name: str
+    kind: str
+    arg: str
+    watching: str  # a watchlist row's pass condition; "" for a catalog row
+
+
 def load_catalog():
+    """Rows whose Endpoint cell names a fetcher.
+
+    A four-cell row is a watchlist row and its third cell is the criterion; a
+    three-cell catalog row carries prose there instead, so cell count is what
+    tells them apart. Cells split on an unescaped pipe, because a title regex
+    needs a literal one for alternation and a markdown table spells that \\|.
+    """
     rows, text = [], (ROOT / "me/channels.md").read_text()
     for line in text.splitlines():
-        cells = [c.strip().strip("`") for c in line.strip().strip("|").split("|")]
+        cells = [c.strip().strip("`").replace("\\|", "|")
+                 for c in re.split(r"(?<!\\)\|", line.strip().strip("|"))]
         if len(cells) >= 2:
             kind, _, arg = cells[1].partition(":")
             if kind in FETCHERS:
-                rows.append((cells[0], kind, arg))
+                rows.append(Channel(cells[0], kind, arg,
+                                    cells[2] if len(cells) >= 4 else ""))
     return rows
 
 
@@ -71,13 +89,53 @@ def decided_names():
     return names - {"", norm("Company")}
 
 
+EMPLOYER_KINDS = {"ashby", "greenhouse", "lever", "smartrecruiters", "workable"}
+
+
+def watched_names(catalog):
+    """Companies cataloged as their own channel in me/channels.md.
+
+    A promising company with no seat sits on the board and is swept anyway, so
+    that a new posting is noticed the run it appears. Without this, its own
+    board row would drop it as already-decided and the watch would be silent.
+    Fund and aggregator channels are excluded: their leads are portfolio
+    companies, not the channel itself. The exemption lasts as long as the
+    catalog row does, so deleting the row is how watching stops.
+    """
+    return {norm(ch.arg) for ch in catalog if ch.kind in EMPLOYER_KINDS} | \
+           {norm(ch.name) for ch in catalog if ch.kind in EMPLOYER_KINDS}
+
+
+def watch_criteria(catalog):
+    """Each watched company's pass condition, keyed the two ways
+    watched_names keys its set.
+
+    A lead's company comes back from the ATS as the display name or as
+    something near the slug ("Zipline" against flyzipline). Keying on one of
+    the two leaves the criterion unfound, and that fails open: the company is
+    already exempt from already-decided, so its postings would reach the
+    digest unchecked while the watch looked like it worked.
+    """
+    criteria = {}
+    for ch in catalog:
+        if ch.watching and ch.kind in EMPLOYER_KINDS:
+            criteria[norm(ch.name)] = ch.watching
+            criteria[norm(ch.arg)] = ch.watching
+    return criteria
+
+
+def watch_miss(lead, ctx):
+    """True when the company is watched for something this posting is not."""
+    criterion = ctx["watching"].get(norm(lead.company))
+    return bool(criterion) and not meets(lead, criterion)
+
+
 def fetch_all(catalog):
-    def run(row):
-        name, kind, arg = row
+    def run(ch):
         try:
-            return name, FETCHERS[kind](arg), None
+            return ch.name, FETCHERS[ch.kind](ch.arg), None
         except ChannelError as e:
-            return name, [], str(e)
+            return ch.name, [], str(e)
     with ThreadPoolExecutor(max_workers=8) as pool:
         return list(pool.map(run, catalog))
 
@@ -89,7 +147,9 @@ def sweep(audit=False):
     if not catalog:
         sys.exit("no machine channels in me/channels.md; add Endpoint cells first")
     seen = {} if audit else (json.loads(SEEN.read_text()) if SEEN.exists() else {})
-    ctx = {"seen": seen, "decided": decided_names()}
+    watching = watch_criteria(catalog)
+    ctx = {"seen": seen, "decided": decided_names() - watched_names(catalog),
+           "watching": watching}
     today = datetime.date.today().isoformat()
     fresh, drops, errors, per_step = [], {}, [], {}
 
@@ -107,7 +167,10 @@ def sweep(audit=False):
     if not audit:
         SEEN.write_text(json.dumps(seen, indent=0))
     write_predictions(per_step, "audit" if audit else "sweep", today)
-    print_digest(fresh, drops, errors)
+    hits = [(l, watching[norm(l.company)]) for l in fresh
+            if norm(l.company) in watching]
+    print_digest([l for l in fresh if norm(l.company) not in watching],
+                 drops, errors, hits)
 
 
 STEPS = (
@@ -119,6 +182,7 @@ STEPS = (
     ("tooling-or-gtm", lambda l, ctx: bool(TOOLING_OR_GTM.search(l.title))),
     ("foreign-remote", lambda l, ctx: bool(FOREIGN.search(l.location))
         and not IN_US.search(l.location)),
+    ("watch-criterion", watch_miss),
 )
 
 
@@ -146,7 +210,14 @@ def write_predictions(per_step, run_slug, today):
                             l.band or "", l.url or "", l.source])
 
 
-def print_digest(fresh, drops, errors):
+def print_digest(fresh, drops, errors, hits=()):
+    if hits:
+        print(f"## Watchlist hits ({len(hits)})\n")
+        for l, criterion in sorted(hits, key=lambda h: h[0].company.lower()):
+            print(f"- **{l.company}**: {l.title} | {l.band or 'no band'} | "
+                  f"{l.url or ''}")
+            print(f"  matched `{criterion}`")
+        print()
     print(f"## New leads ({len(fresh)})\n")
     if fresh:
         print("| Company | Title | Location | Band | URL | Source |")

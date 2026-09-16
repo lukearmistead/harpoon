@@ -23,8 +23,13 @@ fi
 
 tmp=$(mktemp -d)
 git clone --quiet --depth 1 "$url" "$tmp"
+# grades.csv is excluded on both sides, never sent and never deleted: the
+# private one names real companies, and the template ships a header-only seed
+# that --delete would otherwise prune, since evals/.gitkeep is the only evals
+# path on the allowlist.
 for p in "${ENGINE_PATHS[@]}"; do
-  rsync -aR --delete --exclude __pycache__ --exclude .pytest_cache "$p" "$tmp/"
+  rsync -aR --delete --exclude __pycache__ --exclude .pytest_cache \
+        --exclude grades.csv "$p" "$tmp/"
 done
 
 git -C "$tmp" add -A
