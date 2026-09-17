@@ -23,17 +23,17 @@ fi
 
 tmp=$(mktemp -d)
 git clone --quiet --depth 1 "$url" "$tmp"
-# grades.csv is excluded on both sides, never sent and never deleted: the
-# private one names real companies, and the template ships a header-only seed
-# that --delete would otherwise prune, since evals/.gitkeep is the only evals
-# path on the allowlist.
+# evals/.gitkeep is the only evals path on the allowlist, so --delete prunes
+# every sibling from the template: that is the point. A run directory names
+# real companies and must never leave, and grades.csv was retired on
+# 2026-09-16, so the template's seeded copy gets pruned on the next export.
 for p in "${ENGINE_PATHS[@]}"; do
-  rsync -aR --delete --exclude __pycache__ --exclude .pytest_cache \
-        --exclude grades.csv "$p" "$tmp/"
+  rsync -aR --delete --exclude __pycache__ --exclude .pytest_cache "$p" "$tmp/"
 done
 
 git -C "$tmp" add -A
-if git -C "$tmp" diff --cached --name-only | grep -qE '^(me/|applications/|pipeline\.md|evals\.md)'; then
+if git -C "$tmp" diff --cached --name-only |
+   grep -qE '^(me/|applications/|pipeline\.md|evals\.md|evals/[0-9])'; then
   echo "refusing: a personal path reached the staging area" >&2
   exit 1
 fi

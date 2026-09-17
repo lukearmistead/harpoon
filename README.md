@@ -74,8 +74,8 @@ nothing here needs that on day one.
 5. **Debrief.** Notes from conversations go in `me/meetings/`. After an
    interview, write the debrief while it is fresh.
 6. **Feed it back.** A lesson worth keeping becomes a criteria change or a
-   channel note in the same turn it is learned, and every graded call lands
-   in `evals/grades.csv`.
+   channel note in the same turn it is learned, and a call that proves wrong
+   gets the row that made it adjudicated under `evals/`.
 
 ## Using it day to day
 
@@ -102,8 +102,10 @@ not only when it disagrees with itself.
 
 ```
 pipeline.md         the board. Stage, next action, overrides, rejections
-evals/grades.csv    the misclassification log. Graded calls, in the machine
-                    learning sense, that drive skill fixes
+evals/              one directory per sweep run: run.json, sweep.csv and
+                    judgment.csv. Each row is a prediction, and its empty
+                    adjudication columns are where a call gets graded in the
+                    machine learning sense
 applications/       one directory per company. company.md holds the research
                     and its dated log, then the resume variant, the cover
                     letter, form-fill.md, takehomes, prep docs, post-mortems,
@@ -116,10 +118,11 @@ me/interviews/      the interview sessions the fact base cites as authority
 me/meetings/        notes from conversations
 me/experience/      raw source material: reviews, analyses, documents
 me/network/         LinkedIn export under export/, derived rosters beside it
-.claude/skills/     the seven procedures: setup, gather-experience,
+.claude/skills/     the nine procedures: setup, gather-experience,
                     write-criteria, write-resume, sweep-jobs,
-                    research-company, write-application. Skill-owned scripts
-                    and reference files sit inside their skill directory
+                    research-company, write-application, update-board,
+                    review-evals. Skill-owned scripts and reference files
+                    sit inside their skill directory
 harpoon/            engine code with tests/ beside it
 CLAUDE.md           the rules the copilot follows
 scripts/check-citations.sh  fails on a cited path that is missing and not gitignored

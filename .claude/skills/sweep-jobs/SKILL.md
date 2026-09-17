@@ -31,18 +31,52 @@ It fetches every cataloged endpoint in `me/channels.md` concurrently,
 drops what `pipeline.md` and `applications/` already decided, what earlier
 runs already surfaced (`.sweep-seen.json`, gitignored; safe to lose), what
 fails the location hard line, and what fails the title class, then prints
-only the new leads plus a count per drop reason, and logs predictions to
-`evals/<date>-<run>-<step>.csv`: one file per filter step, every lead the
-step saw with its pass or drop call, so each step's error rate is
-measurable and improvable on its own. `python3 -m harpoon.sweep audit`
-rebuilds the logs from all live postings, ignoring the seen-cache. The
-judgment pass writes its own `evals/<date>-judgment.csv` (board,
-near-miss, or reject per company, gate named); a call that proves wrong
-gets a dated row in `evals/grades.csv` naming the step. Read the drop
-counts:
-a silent filter bug hides there, and an ERROR line is a dead channel to
-fix or note in `me/channels.md`, never an empty one. A first run after a
-long gap is big; the next is the delta.
+only the new leads plus a count per drop reason.
+
+Each run writes `evals/<run-id>/`, named for the second it started so two
+runs in a day cannot overwrite each other. `sweep.csv` is one row per lead
+and its `decision` is the gate that fired or `kept`; `run.json` holds the
+gate order, the per-channel counts and the fetch errors.
+`python3 -m harpoon.sweep audit` reruns every gate against all live
+postings, ignoring the seen-cache.
+
+Nothing in the code writes `judgment.csv`, because the judgment pass is you.
+Write it in the same directory with the columns
+`harpoon/evals.py` names in `JUDGMENT_COLUMNS`, one row per posting:
+
+    decision,why,adjudication,judge,adjudicated,shape,fix,note,company,title,url
+
+`decision` is `board`, `near-miss` or `reject`, and `why` is your reasoning,
+written now. **`note` is not yours: it belongs to whoever grades the row
+later**, along with the rest of the adjudication columns, and reasoning
+written there makes a grader overwrite the evidence they came to grade.
+
+**Name the criterion in `why`, in the words `me/criteria.md` uses.** Not a gate
+number, which that file has never heard of and `CLAUDE.md` bans outright, and
+not a fresh phrase each run: two runs forty minutes apart once wrote "Gate 5"
+and "The expertise test" for the same call, which makes the two uncountable.
+Say which test decided it and whether that test is a stop, a real objection or
+a tiebreaker, because the criteria file ranks them and the whole file is the
+standard here, not your read of the posting.
+
+**A lead that reached you only because a channel criterion was too loose is not
+a rejected seat.** Say so once, fix `me/channels.md`, and do not write a verdict
+per posting: nineteen identical rows in one run were a single call about
+sourcing, and they drown the calls about seats.
+
+Invent a header here and `reconcile` reads nothing and reports nothing wrong.
+**Then run
+`python3 -m harpoon.sweep reconcile`**, which names every `kept` lead with
+no verdict and no board row: an unjudged survivor is not pending, it is
+gone, because the seen-cache remembers it and the next run drops it at
+`seen-before`.
+
+Every row carries empty adjudication columns. Fill one in when a call
+proves wrong, and when it proves right: a gate nobody labels has no
+measured error rate. Read the drop counts too, because a silent filter bug
+hides there, and an ERROR line is a dead channel to fix or note in
+`me/channels.md`, never an empty one. A first run after a long gap is big;
+the next is the delta.
 
 **Agents run only the channels a script cannot** (rows in the catalog
 with no Endpoint), split by source, never by topic, no overlap:
@@ -63,26 +97,44 @@ verifies rather than recalls and marks the unverified as unverified.
 
 ## Step 2: Filter
 
-Run the gates in order, cheapest first. Stop at the first failure, name it.
+Run the gates in order, cheapest first. Stop at the first failure and name it.
 
-1. **Already decided.** The machine lane precomputes this; grep
-   `pipeline.md` and `applications/` for agent-sourced names. Never
-   re-surface a `rejected` or `passed` row without saying what changed.
-2. **The hard lines.** Whatever `me/criteria.md` marks as a stop, checked
-   from the posting and the company's own pages, not an aggregator. The
-   machine lane pre-applies the location line textually; a posting that
-   says "Remote" and means "Remote, EST only" still dies here.
-3. **Alive and growing.** Last raise and its date, layoff history, revenue
-   direction. Debt as the most recent round is a signal, not a footnote.
-4. **The seat, on the company's own board.** An aggregator hit is a lead, not
-   a fact. Carry the exact title, location string, onsite policy, published
-   band, and the canonical URL. `.claude/skills/sweep-jobs/ats-boards.md`
-   holds the machine-readable endpoints; read it before fetching.
-5. **The method stack.** A posting whose method list is mostly things the
-   candidate has never shipped is a mismatch regardless of domain fit.
-   Cheap, so it goes before the expensive read.
-6. **`me/criteria.md`, as written.** The tests and their override rule live
-   there. Compare the posting's problem against `me/resume.md`, not titles.
+**Name it, never number it.** These gates had numbers once and the numbers were
+wrong more often than they were right: twelve verdicts said "gate 5", the method
+stack, when every one of them meant the expertise test, and nineteen more hedged
+"gate 5 or 6" rather than pick. A number is also banned from the board by
+`CLAUDE.md`, because it means nothing to the candidate. Use these names here, in
+`why`, and on `pipeline.md`, so the same call reads the same in all three.
+
+- **Already decided.** The machine lane precomputes this; grep
+  `pipeline.md` and `applications/` for agent-sourced names. Never
+  re-surface a `rejected` or `passed` row without saying what changed.
+- **The stops.** Whatever `me/criteria.md` marks as a stop, checked
+  from the posting and the company's own pages, not an aggregator. The
+  machine lane pre-applies the location line textually; a posting that
+  says "Remote" and means "Remote, EST only" still dies here.
+- **Alive and growing.** Last raise and its date, layoff history, revenue
+  direction. Debt as the most recent round is a signal, not a footnote.
+- **The seat**, on the company's own board. An aggregator hit is a lead, not
+  a fact. Carry the exact title, location string, onsite policy, published
+  band, and the canonical URL. `.claude/skills/sweep-jobs/ats-boards.md`
+  holds the machine-readable endpoints; read it before fetching.
+- **The method stack.** A posting whose method list is mostly things the
+  candidate has never shipped is a mismatch regardless of domain fit.
+  Cheap, so it goes before the expensive read.
+- **Who is on the other side of the model.** The expertise test and the
+  operator test, which is where most rejections actually land. Compare the
+  posting's problem against `me/resume.md`, not titles.
+- **The preferences**, weighed and not counted, last because they are the
+  ones that get misused.
+
+**Only what `me/criteria.md` marks as a stop can reject a posting on its own.**
+Everything else is weighed against the rest, and a rejection resting on a
+preference has to say so in those words. Both of the worst calls this search has
+made were this: a tiebreaker used to rank a company down as though it were a
+gate, and a preference that quietly outranked the stated requirement for a seat
+at or above level. The criteria file ranks its own rules. Read the rank, not just
+the rule.
 
 **Read the whole board, never a title search.** The best-fitting posting
 often carries a title nobody would search for, and never state a
@@ -91,8 +143,10 @@ from trusting a summary over a source. Lessons that cost a day each:
 
 - **Compare a seat's band to the company's own ladder, not the market.**
   A Staff band topping out where Senior starts is a Senior seat in disguise.
-- **Read the requirements section for hard gates.** A required PhD or twelve
-  years is a wall, not a stretch.
+- **Read the requirements section for hard gates, then ask `me/criteria.md`
+  which of them is actually a wall.** That file is the only thing that says so,
+  and it has moved: a required degree was read as a wall here for a week after
+  the candidate said it was a suggestion, which cost a verdict.
 - **Resolve onsite policy from sibling postings** when the target is
   silent, and trust the posting over the aggregator on onsite policy.
 - **Re-validate immediately before applying.** Posting IDs churn inside a
@@ -111,16 +165,53 @@ from trusting a summary over a source. Lessons that cost a day each:
   `watch`, which means adding its board to the `me/channels.md` watchlist in
   the same turn, because that row is what does the watching.
 - **Rejections go under Swept and rejected** as one dated line in the
-  verdict grammar `pipeline.md` opens with. A gate 2, 3 or 4 failure is a
-  fact about today, so add what would bring it back; a gate 5 or 6 failure
-  is about the thesis and does not come back. Verdicts are append-only: a
+  verdict grammar `pipeline.md` opens with. Failing a stop, the company's
+  health or the seat is a fact about today, so add what would bring it back;
+  failing the expertise or operator test is about the thesis and does not
+  come back. Verdicts are append-only: a
   wrong one gets a dated correction under it, never an edit.
+- **Confirm the metro against the company's own board before boarding**,
+  never off the digest's location field. Three misses on this shape, each one
+  a company boarded on a location string that its own board contradicted.
+  Count the postings actually in range and say the count.
 - No open seat is not a rejection when the problem and the office are
   right: the next action there is a person.
-- Run `./scripts/check-citations.sh`. Nothing runs it for you.
+- **Nothing is on the board until it is on `pipeline.md`.** A verdict that
+  lives only in `judgment.csv` does not stop the row resurfacing, because
+  `decided_names` reads the board.
+- Run `python3 -m harpoon.sweep reconcile`, then
+  `./scripts/check-citations.sh`. Nothing runs either for you.
 
 ## Step 4: Stop
 
 Do not roll into deep research: a swept candidate is a row, not a directory
 under `applications/`. When the candidate says one advances, run
 research-company on that company alone.
+
+## Lessons, counting toward a third
+
+At three of one shape this file changes. Until then the count is the point.
+
+- **A preference outranking a stop.** Two: a healthcare tiebreaker used as a
+  gate to rank a company down, and an operator-test preference that quietly
+  outranked the stated requirement for a seat at or above level. Read
+  `me/criteria.md`'s stops as constraints first and its preferences as the
+  ranking among what survives, and say which is which out loud. At a third,
+  this file gets an explicit step that sorts the criteria by force before any
+  seat is compared.
+
+- **A gate widened past the criteria file.** One: the location gate was widened
+  to a whole metro on the strength of an adjudication whose `fix` cell said the
+  criteria had been rewritten to match, and it never was, so the gate stood on a
+  rule no file contained. It reached three places before anyone checked, the
+  code, that cell, and a board row citing the file for words it does not
+  contain. Judgment then spent its verdicts rejecting by hand what the gate had
+  stopped dropping. When a `fix` cell says a rules file changed, open the file.
+
+- **A fetcher that samples reads as a fetcher that enumerates.** Two: the
+  Consider and Getro pagination stopping silently at the first empty page,
+  and a16z returning the first page of seven ranked queries, where two runs
+  three hours apart shared 155 of 162 postings and each held 7 the other
+  did not. The seen-cache makes it worse, not better: a posting sampled once
+  is cached forever. At a third, the fetchers get real pagination rather
+  than another stderr warning.

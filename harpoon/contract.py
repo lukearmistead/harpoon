@@ -6,7 +6,13 @@ fetchers move into this package, they will emit it directly, and the sweep's
 judgment layer will consume it unchanged.
 """
 
+import re
 from dataclasses import dataclass
+
+
+def norm(s):
+    """A company name reduced to what two spellings of it share."""
+    return re.sub(r"[^a-z0-9]", "", s.lower())
 
 
 @dataclass(frozen=True)

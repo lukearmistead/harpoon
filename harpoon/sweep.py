@@ -1,16 +1,23 @@
 """The machine lane of the sweep: fetch, dedupe, filter, digest.
 
     python3 -m harpoon.sweep            sweep every cataloged channel
+    python3 -m harpoon.sweep audit      rerun every gate, ignoring the cache
     python3 -m harpoon.sweep probe X    find company X's ATS board and seats
+    python3 -m harpoon.sweep reconcile  kept leads the newest run never judged
+    python3 -m harpoon.sweep grades     what the adjudications have measured
 
 Reads the catalog from me/channels.md (rows with an Endpoint cell), drops
 what the repo has already decided and what earlier runs already surfaced
 (.sweep-seen.json, gitignored), applies the two deterministic gates
 (location hard line, title class), and prints only what is new. Judgment
 against me/criteria.md stays in the main thread; this prints facts.
+
+Every run writes evals/<run-id>/, one directory per sweep instance: run.json
+and sweep.csv, one row per lead, its decision the gate that fired or "kept".
+The adjudication columns start empty and are what makes each gate's error
+rate measurable, so fill them in rather than writing prose elsewhere.
 """
 
-import csv
 import datetime
 import json
 import re
@@ -20,13 +27,28 @@ from pathlib import Path
 from typing import NamedTuple
 
 from harpoon.boards import FETCHERS, ChannelError
+from harpoon.contract import norm
+from harpoon.evals import grades, reconcile, write_run
 from harpoon.watch import meets
 
 ROOT = Path(__file__).resolve().parent.parent
 SEEN = ROOT / ".sweep-seen.json"
 EVALS = ROOT / "evals"
 
-LOCATION_OK = re.compile(r"(?i)san francisco|\bsf\b|bay area|berkeley|oakland|remote")
+# Whatever me/criteria.md marks as a stop on geography, and nothing wider. This
+# gate was once widened past the criteria on the strength of an adjudication
+# whose fix cell claimed the criteria had been rewritten to match; it had not,
+# and judgment then spent its verdicts rejecting those postings by hand, one at
+# a time. Widen this only when the criteria file says so in its own words.
+#
+# Unlike FOREIGN below, this is an allowlist, so every gap is a false negative
+# that dies silently rather than a lead that survives. A town nobody thought to
+# name is a posting nobody will ever see. Sample the wrong-metro drops after
+# editing it. A bare region name stays in: a location cell with no city in it is
+# a lead for a person to read, not a place.
+LOCATION_OK = re.compile(
+    r"(?i)san francisco|\bsf\b|bay area|remote|"
+    r"berkeley|oakland|emeryville|alameda|walnut creek|fremont|hayward")
 NOT_IC = re.compile(r"(?i)\bmanager\b|\bdirector\b|\bvp\b|vice president|head of|"
                     r"\bchief\b|\bintern\b|internship|new grad")
 TOOLING_OR_GTM = re.compile(
@@ -34,20 +56,24 @@ TOOLING_OR_GTM = re.compile(
     r"solutions architect|account executive|\bsales\b|\bgtm\b|go-to-market|"
     r"support engineer|support specialist|advocate|security|appsec|\bsoc\b|"
     r"recruiter|marketing|designer|\bcounsel\b|evaluator|partnerships|enablement")
+# A denylist, so every gap is a lead that survives: a posting reading
+# "Austria; Remote" once passed the whole funnel because no row here named
+# Austria, and the candidate read it before the gate did.
 FOREIGN = re.compile(
-    r"(?i)europe|\bemea\b|\beu\b|united kingdom|london|germany|france|spain|"
-    r"poland|romania|belgium|netherlands|prague|israel|india|bengaluru|singapore|"
-    r"japan|philippines|brazil|argentina|chile|costa rica|honduras|latin america|"
-    r"australia|canada")
+    r"(?i)europe|\bemea\b|\beu\b|\bapac\b|united kingdom|\buk\b|"
+    r"london|ireland|dublin|germany|berlin|munich|france|paris|spain|portugal|"
+    r"italy|austria|vienna|switzerland|zurich|sweden|stockholm|denmark|norway|"
+    r"finland|poland|romania|belgium|netherlands|amsterdam|czech|prague|hungary|"
+    r"greece|bulgaria|turkey|ukraine|israel|tel aviv|\bindia\b|bengaluru|singapore|"
+    r"japan|tokyo|korea|taiwan|china|shenzhen|hong kong|vietnam|thailand|"
+    r"indonesia|philippines|brazil|argentina|chile|colombia|costa rica|"
+    r"honduras|latin america|\blatam\b|australia|new zealand|canada|toronto|"
+    r"vancouver|south africa|nigeria|kenya|egypt|\buae\b|dubai")
 IN_US = re.compile(r"(?i)united states|\busa?\b|u\.s\.|san francisco|berkeley|"
                    r"oakland|bay area|america|\bpst\b|\bcalifornia\b")
 TITLE_OK = re.compile(
     r"(?i)machine learning|\bml\b|\bai\b|data scien|applied scien|research scien|"
     r"data engineer|deep learning|\bnlp\b|\bllm\b|forward deployed|decision scien")
-
-
-def norm(s):
-    return re.sub(r"[^a-z0-9]", "", s.lower())
 
 
 class Channel(NamedTuple):
@@ -111,7 +137,7 @@ def watch_criteria(catalog):
     watched_names keys its set.
 
     A lead's company comes back from the ATS as the display name or as
-    something near the slug ("Zipline" against flyzipline). Keying on one of
+    something near the slug ("Acme" against flyacme). Keying on one of
     the two leaves the criterion unfound, and that fails open: the company is
     already exempt from already-decided, so its postings would reach the
     digest unchecked while the watch looked like it worked.
@@ -142,7 +168,7 @@ def fetch_all(catalog):
 
 def sweep(audit=False):
     """audit=True reruns every gate but the seen-cache and touches nothing,
-    so the prediction logs cover all live postings, not just today's new."""
+    so the prediction log covers all live postings, not just today's new."""
     catalog = load_catalog()
     if not catalog:
         sys.exit("no machine channels in me/channels.md; add Endpoint cells first")
@@ -150,27 +176,38 @@ def sweep(audit=False):
     watching = watch_criteria(catalog)
     ctx = {"seen": seen, "decided": decided_names() - watched_names(catalog),
            "watching": watching}
-    today = datetime.date.today().isoformat()
-    fresh, drops, errors, per_step = [], {}, [], {}
+    started = datetime.datetime.now()
+    today = started.date().isoformat()
+    rows, fresh, drops, errors, channels, this_run = [], [], {}, [], {}, set()
 
     for name, leads, err in fetch_all(catalog):
         if err:
             errors.append(f"{name}: {err}")
+        channels[name] = len(leads)
         for lead in leads:
-            reason = judge(lead, ctx, per_step)
+            decision = "duplicate" if lead.key() in this_run else judge(lead, ctx)
+            this_run.add(lead.key())
             seen.setdefault(lead.key(), today)
-            if reason:
-                drops.setdefault(reason, []).append(lead)
-            else:
+            rows.append((decision, lead))
+            if decision == "kept":
                 fresh.append(lead)
+            else:
+                drops.setdefault(decision, []).append(lead)
 
     if not audit:
         SEEN.write_text(json.dumps(seen, indent=0))
-    write_predictions(per_step, "audit" if audit else "sweep", today)
+    run_dir = EVALS / started.strftime("%Y-%m-%dT%H%M%S")
+    write_run(rows, run_dir, {
+        "run": run_dir.name, "mode": "audit" if audit else "sweep",
+        "started": started.isoformat(timespec="seconds"),
+        "finished": datetime.datetime.now().isoformat(timespec="seconds"),
+        "decisions": list(DECISIONS), "channels": channels, "errors": errors,
+        "counts": {d: len(v) for d, v in sorted(drops.items())} | {"kept": len(fresh)},
+    })
     hits = [(l, watching[norm(l.company)]) for l in fresh
             if norm(l.company) in watching]
     print_digest([l for l in fresh if norm(l.company) not in watching],
-                 drops, errors, hits)
+                 drops, errors, hits, run_dir)
 
 
 STEPS = (
@@ -180,37 +217,29 @@ STEPS = (
     ("title-class", lambda l, ctx: not TITLE_OK.search(l.title)),
     ("ic-seat", lambda l, ctx: bool(NOT_IC.search(l.title))),
     ("tooling-or-gtm", lambda l, ctx: bool(TOOLING_OR_GTM.search(l.title))),
-    ("foreign-remote", lambda l, ctx: bool(FOREIGN.search(l.location))
-        and not IN_US.search(l.location)),
+    # Title as well as location, because a posting that means it says so there:
+    # "Forward Deployed AI Engineer (Senior/Principal) - based in Austria".
+    ("foreign-remote", lambda l, ctx: bool(FOREIGN.search(l.title + " " + l.location))
+        and not IN_US.search(l.title + " " + l.location)),
     ("watch-criterion", watch_miss),
 )
 
 
-def judge(lead, ctx, per_step):
-    """Walk the funnel; log a prediction at every step the lead reaches."""
+DECISIONS = ("duplicate", *(slug for slug, _ in STEPS), "kept")
+
+def judge(lead, ctx):
+    """Walk the funnel and name what happened: the gate that fired, or kept.
+
+    A lead dies at one gate, so one row says everything the eight per-gate
+    files used to say between them, as long as run.json keeps the order.
+    """
     for slug, drops_it in STEPS:
-        outcome = "drop" if drops_it(lead, ctx) else "pass"
-        per_step.setdefault(slug, []).append((outcome, lead))
-        if outcome == "drop":
+        if drops_it(lead, ctx):
             return slug
-    return None
+    return "kept"
 
 
-def write_predictions(per_step, run_slug, today):
-    """One CSV per step per run: every lead the step saw, with its call.
-    These are the predictions evals/grades.csv later grades."""
-    EVALS.mkdir(exist_ok=True)
-    for slug, rows in per_step.items():
-        with open(EVALS / f"{today}-{run_slug}-{slug}.csv", "w", newline="") as f:
-            w = csv.writer(f)
-            w.writerow(["prediction", "company", "title", "location", "band",
-                        "url", "source"])
-            for outcome, l in rows:
-                w.writerow([outcome, l.company, l.title, l.location,
-                            l.band or "", l.url or "", l.source])
-
-
-def print_digest(fresh, drops, errors, hits=()):
+def print_digest(fresh, drops, errors, hits=(), run_dir=None):
     if hits:
         print(f"## Watchlist hits ({len(hits)})\n")
         for l, criterion in sorted(hits, key=lambda h: h[0].company.lower()):
@@ -235,7 +264,10 @@ def print_digest(fresh, drops, errors, hits=()):
     for e in errors:
         print(f"- ERROR {e} (a dead channel is not an empty one; fix or note it "
               "in me/channels.md)")
-    print(f"\nPer-step prediction logs: {EVALS}/<date>-<run>-<step>.csv")
+    if run_dir:
+        print(f"\nPrediction log: {run_dir}/sweep.csv. Adjudicate a row by "
+              "filling its adjudication column with the decision the gate "
+              "should have made.")
 
 
 def probe(company):
@@ -264,8 +296,24 @@ def probe(company):
               "check the apply link on their careers page")
 
 
+def reconcile_board():
+    """Reconcile the newest sweep against everything the repo already knows.
+
+    A slug is not a display name: a company is boarded under the name a person
+    types and its leads arrive under the ATS slug, numeric suffix and all, so
+    the catalog keys both ways. Match on one of the two and a company that has
+    sat on the board for weeks is reported unjudged, every single run.
+    """
+    reconcile(EVALS, decided_names() | watched_names(load_catalog()))
+
+
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "probe":
+    command = sys.argv[1] if len(sys.argv) > 1 else ""
+    if command == "probe":
         probe(" ".join(sys.argv[2:]) or sys.exit("probe needs a company name"))
+    elif command == "reconcile":
+        reconcile_board()
+    elif command == "grades":
+        grades(EVALS)
     else:
-        sweep(audit="audit" in sys.argv[1:])
+        sweep(audit=command == "audit")

@@ -34,7 +34,13 @@ a render or a push fails for a reason that smells environmental.
 
 Say this out loud at the end of a clean run, briefly:
 
-- `pipeline.md` is the board and the only todo list.
+- `pipeline.md` is the board and the only todo list. **Create it if it is
+  missing**, which it will be in a fresh instance: the template ships no
+  `pipeline.md` because it would carry real companies. Write the skeleton, the
+  status meanings at the top, then `## Todo` with its five blocks and `## Board`
+  with the table header. `.claude/skills/update-board/` says what each block
+  means; copy the shape from there rather than inventing one. It is the one page
+  the candidate reads, so every skill files what it needs from him here.
 - `me/` is theirs: criteria, fact base, resume, rules, interviews, meetings,
   raw documents, the LinkedIn export under `me/network/export/`.
 - `applications/` grows one directory per company that advances.
