@@ -61,6 +61,43 @@ nothing here needs that on day one.
 
 ## The loop
 
+```mermaid
+flowchart LR
+    facts["<b>Fact base</b><br/>every number, title and date,<br/>built from your old reviews<br/>and resumes"]
+    facts --> criteria["<b>Criteria</b><br/>what counts as<br/>a good job"]
+    facts --> resume["<b>Master<br/>resume</b>"]
+
+    channels["<b>Channels</b><br/>boards, funds,<br/>your network"] --> sweep["<b>Sweep</b><br/>fetch every<br/>posting"]
+    sweep --> filter{"Passes your<br/>criteria?"}
+    criteria --> filter
+
+    filter -->|no| rejected["<b>Rejected in writing</b><br/>with the reason, so it is<br/>never researched twice"]
+    filter -->|yes| board["<b>The board</b><br/>the only place<br/>status lives"]
+    rejected --> log["<b>Eval log</b><br/>every decision<br/>and its reason"]
+    board --> research["<b>Research</b><br/>one company,<br/>ending in a verdict"]
+    research --> log
+    log --> grade["<b>Grade the calls</b><br/>the wrong ones<br/>and the right ones"]
+
+    research --> apply["<b>Apply</b><br/>a resume variant and a letter,<br/>or a message to<br/>someone you know"]
+    resume --> apply
+    apply --> debrief["<b>Debrief</b><br/>while it<br/>is fresh"]
+
+    facts -.->|"no claim may be invented"| apply
+    debrief -.->|"what you learned"| facts
+    grade -.->|"three of a kind<br/>changes a rule"| criteria
+```
+
+Two bands, both reading left to right. Along the top, postings arrive and get
+measured against your criteria: most are rejected, in writing, which is what
+stops the same company being researched twice next month. Along the bottom sits
+the record of you, and everything sent out is cut from it.
+
+The three dotted lines are the part that makes this different from a
+spreadsheet. Nothing reaches an application that is not already in the fact
+base. What you learn in a conversation goes back into it. And every decision the
+search makes is logged with its reason and graded later, so a rule that keeps
+being wrong gets changed rather than argued about again.
+
 1. **Source.** The sweep-jobs skill fans agents across your channel catalog and
    your network export, then filters what comes back against your criteria.
 2. **Board it.** Survivors and rejections both go on `pipeline.md`. Writing
