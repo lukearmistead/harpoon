@@ -9,12 +9,13 @@ in `me/criteria.md` and win when they disagree.
 ```
 pipeline.md      single source of truth for status and next action, never
                  stale. Opens with the verdict grammar decisions follow.
-evals/           the eval loop, all of it: per-step prediction logs, one
-                 dated CSV per filter step per run with every lead the step
-                 saw and its pass or drop call, the judgment layer included;
-                 and grades.csv, the append-only misclassification log those
-                 predictions are graded into (date, skill, step, prediction,
-                 truth, fix)
+evals/           the eval loop, all of it. One directory per sweep instance,
+                 named for the second it started, holding run.json and one
+                 file per step: sweep.csv, a row per lead whose decision is
+                 the gate that fired or `kept`, and judgment.csv, a row per
+                 posting the judgment step ruled on. Every row carries empty
+                 adjudication columns for a human or a model to fill in with
+                 the decision the step should have made
 applications/    one directory per company: company.md (research + dated
                  log), variant, letter, form-fill.md, prep, debriefs, PDFs
 me/criteria.md   what the candidate wants and how to work with them
@@ -25,10 +26,12 @@ me/interviews/   dated interview sessions, the fact base's cited authority
 me/meetings/     the candidate's notes from conversations. Input. Tracked
 me/experience/   raw source material. Tracked, because it is irreplaceable
 me/network/      LinkedIn export under export/ (gitignored); rosters tracked
-.claude/skills/  the seven procedures, their scripts and reference files.
+.claude/skills/  the nine procedures, their scripts and reference files.
                  They live there and nowhere else: do not restate them.
 harpoon/         engine code, tests/ beside it
 scripts/check-citations.sh  fails on a cited path that is missing and not gitignored
+scripts/check-watch-rows.sh fails on a `watch` row with no channel watching it
+scripts/check-open-questions.sh fails on an `[ask]` the candidate cannot see
 scripts/export-template.sh  publishes the engine files to the public template repo;
                  the one deliberate door, and personal paths are never on
                  its allowlist
@@ -48,14 +51,30 @@ read `## Voice` in `me/experience.md` first. A generic draft is wrong.
   dive," or opening with "I'm excited to" or "I was drawn to."
 - Short declarative sentences. Specifics over adjectives.
 
+These rules cover everything written here, not only letters. Say things
+plainly, in the words a person would use out loud. No internal shorthand on a
+page the candidate reads: "gate 4" means nothing to him, "no job on their board
+worth applying to" does. If a term has to be looked up somewhere else in the
+repo to be understood, it is the wrong term. Board rows and `## Todo` items are
+the worst offenders and the ones to watch: keep a Todo to a line or two, the
+ask and the reason, and let the row carry the rest.
+
 ## Standing behaviors
 
 - Ask before committing, always. Edit freely, say what is uncommitted, wait.
+- **`pipeline.md` is the one page the candidate reads, so it is the inbox for
+  everything that needs him, not just companies.** A question about the fact
+  base, the resume, the criteria or a form belongs on its Todo the turn it is
+  raised, one or two lines, while the detail stays in the file it came from.
+  The same rule runs backwards and that half rots faster: when something is
+  answered, close it in both places the same turn. Every skill that can raise a
+  question owns this, `gather-experience` and `write-resume` included.
 - A status change updates `pipeline.md` the same turn, dated, unasked; a
-  rejection also lands in `evals/grades.csv`. A `me/meetings/` note moves status,
-  verdict, and next action the same turn, or the meeting didn't happen.
+  rejection also adjudicates the row that predicted it. A `me/meetings/` note
+  moves status, verdict, and next action the same turn, or the meeting didn't
+  happen.
 - Decisions are append-only: a wrong verdict gets a dated correction,
-  never an edit, and the correction also lands in `evals/grades.csv`.
+  never an edit, and the correction adjudicates the row that made the call.
 - After any interview, prompt for a debrief into `applications/` while
   fresh; a fumbled question joins open questions; prep loads all debriefs.
 - Warm paths: grep `me/network/export/Connections.csv`, never re-derive;
@@ -77,6 +96,12 @@ read `## Voice` in `me/experience.md` first. A generic draft is wrong.
 - `me/experience.md` holds every number, title, date, and scope claim;
   none reaches a document otherwise. Respect its "do not use" notes and
   `[check]` flags. Missing: ask, never reconstruct.
+- Two markers, one job each. `[check]` means verify this before it is used, and
+  it is yours to do. **`[ask: <Key>]` means only the candidate can answer, so it
+  must also be a line on `pipeline.md`**, where the key is a short distinctive
+  word that appears in that line. `scripts/check-open-questions.sh` proves it.
+  Tagging an entry is a decision, not a default: an untagged open question is
+  not an error, it is one you have not decided about yet.
 - Positioning states picks, not facts; on disagreement the fact wins. A
   pick is the candidate's: ask with a recommendation, record it, let
   documents follow. A dropped or reworded claim is a pick recorded the
@@ -101,10 +126,15 @@ read `## Voice` in `me/experience.md` first. A generic draft is wrong.
 - A lesson worth keeping becomes a rule the turn it is learned: about this
   candidate, in `me/criteria.md`; engine-general, offered as a PR upstream.
   Engine files are replaced wholesale; a personal rule in one vanishes.
-- Improvement comes from `evals/grades.csv`, not a change record: a graded
-  call gets a dated row (skill, step, prediction, truth, fix) the turn it is
-  graded, naming the step whose call was wrong. A single grade is a noisy
-  label; three misses of one shape amend the skill, noted in the row's fix
-  column so the log shows which fixes paid off. Git logs the changes.
+- Improvement comes from adjudicating rows, never from a change record.
+  A call that proves wrong gets its row's `adjudication` filled with the
+  decision the step should have made, plus `judge`, `adjudicated`, `shape`
+  and `fix`, the turn it is graded. Confirmed calls are worth recording too:
+  a gate nobody ever labels has no measured error rate. `shape` is what makes
+  a single noisy grade add up, because three of one shape amend the skill and
+  that is a count, not a memory. A fix belongs in the code or the rules; a fix
+  written only in a `fix` column is a fix that did not happen. Git logs the
+  changes. Reading the log back and acting on it is `review-evals`, which also
+  says to check that the fixes those columns claim were actually made.
 - Do not name a path that does not exist. `scripts/check-citations.sh` reports
   dead ones; run it after editing any rules file. Nothing runs it for you.

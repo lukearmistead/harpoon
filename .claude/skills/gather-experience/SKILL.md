@@ -31,6 +31,19 @@ themselves. Split parallel agents by source, not by topic. Summarize each
 source back to the candidate before interviewing, so a misread gets caught
 early.
 
+**1b. Read the public artifacts before interviewing about them.** A repository,
+a personal site, a published talk: fetch it and read it. Asking the candidate to
+describe something a reader can open is a worse version of reading it, and the
+answers it produces are vaguer than the artifact. A candidate said "just go to
+the GitHub page" after three interview questions were queued about his own
+project, and the code answered two of them better than he would have, naming the
+exact model, the constrained output schema and the absence of any evaluation,
+which is the thing the interview would never have surfaced because nobody
+volunteers a missing eval. Then interview for only what the artifact cannot
+hold: when it was built, who used it, what it changed, and why the vendor or the
+approach was chosen. Record the artifact's claims as the artifact's, not the
+candidate's, and flag any discrepancy with what they said as a question.
+
 **2. Interview to fill the holes, found in two passes.** The corpus pass:
 intake surfaces claims that are abstract, unquantified, or resting on a
 number nobody wrote down. The coverage pass: walk the career timeline from
@@ -84,4 +97,17 @@ not weaker.
 
 Read the open questions list back: what got filled, what is still open. Then
 name what runs next. An empty `me/criteria.md` means write-criteria; a stale
-`me/resume.md` means write-resume. Ask before committing.
+`me/resume.md` means write-resume.
+
+**File the questions where the candidate will see them.** This skill writes the
+open questions list, and that list is not a page he reads. Any entry only he
+can answer gets `[ask: <Key>]` and a matching line on `pipeline.md`'s Todo under
+Fact base, one or two lines, while the detail stays here. The rest keep
+`[check]`, which is yours to verify. `./scripts/check-open-questions.sh` proves
+the tagged ones landed.
+
+**Close in both directions.** When an entry is answered, strike it through with
+the date here and take its Todo line off the same turn. This is the half that
+rots: one entry read "two open items, both his" for a day after both were
+settled on the board and in `me/criteria.md`, because nothing carried the
+answer back. Ask before committing.

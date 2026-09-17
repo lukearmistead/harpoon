@@ -97,3 +97,12 @@ have gone to another company. If yes, the first paragraph is wrong.
   row's next action says the drafts are ready; the status moves to `applied`
   on the day they submit.
 - Run `./scripts/check-citations.sh`. Ask before committing.
+
+## Lessons, counting toward a third
+
+At three of one shape this file changes. Until then the count is the point.
+
+- **An application with no company file behind it.** One: a seat the
+  candidate picked and applied to with no research done, declined before a
+  recruiter screen one day later. A single grade is noise, so this is a count
+  and not yet a rule.

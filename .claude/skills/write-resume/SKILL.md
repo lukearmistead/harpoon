@@ -74,5 +74,11 @@ education, then the sourcing line.
 ## Finish
 
 - The resume ends with a line naming what was read to write it.
+- **A hole goes back to gather-experience and onto `pipeline.md` the same
+  turn.** Sending it back alone puts it on a list the candidate does not read.
+  If only he can fill it, tag the open question `[ask: <Key>]` and put one line
+  under Fact base on the Todo; if it can be verified from the record, `[check]`
+  is enough and it stays yours.
 - Reread it against the barred list, since drafts drift toward the stronger
-  claim, then run `./scripts/check-citations.sh` and ask before committing.
+  claim, then run `./scripts/check-citations.sh` and
+  `./scripts/check-open-questions.sh`, and ask before committing.
