@@ -1,6 +1,6 @@
 import pytest
 
-from harpoon.contract import Posting
+from tools.contract import Posting
 
 
 def make(**overrides):

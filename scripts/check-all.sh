@@ -23,6 +23,7 @@ run "watch rows" ./scripts/check-watch-rows.sh
 run "open questions" ./scripts/check-open-questions.sh
 run "note indexes" ./scripts/check-notes-index.sh
 run voice ./scripts/check-voice.sh
+run "criteria length" ./scripts/check-criteria-length.sh
 
 if command -v uv >/dev/null 2>&1; then
   run tests uv run --quiet pytest -q

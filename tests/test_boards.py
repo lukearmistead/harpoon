@@ -5,8 +5,8 @@ Fixtures are minimal recorded shapes; no test touches the network.
 
 import pytest
 
-from harpoon import boards
-from harpoon.boards import ChannelError
+from tools import boards
+from tools.boards import ChannelError
 
 
 def fake_json(payload):

@@ -10,13 +10,19 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# AGENTS.md is the rulebook and CLAUDE.md is a symlink to it; .agents/skills
-# holds the procedures and .claude/skills is a symlink to that. Both symlinks
-# are on the list and both are relative, so they resolve inside the template
-# exactly as they do here. rsync copies a symlink as a symlink: no -L anywhere.
+# AGENTS.md is the rulebook and CLAUDE.md is a symlink to it; skills/ holds the
+# procedures and both .agents/skills and .claude/skills are symlinks to it, one
+# per tool that looks for them. All three symlinks are on the list and all are
+# relative, so they resolve inside the template exactly as they do here. rsync
+# copies a symlink as a symlink: no -L anywhere.
+#
+# .claude/settings.json is named on its own rather than the whole .claude
+# directory, because .claude/settings.local.json is the per-machine override
+# and exporting one person's would hand everybody their local answers.
 TEMPLATE_PATHS=(AGENTS.md CLAUDE.md README.md scripts .githooks pyproject.toml
-              uv.lock .gitignore .agents/skills .claude/skills harpoon tests
-              evals/.gitkeep)
+              uv.lock .gitignore skills .agents/skills .claude/skills
+              .claude/settings.json tools tests
+              learn/runs/.gitkeep)
 
 msg=${1:?usage: ./export-template.sh "commit message"}
 url=$(git remote get-url engine)
@@ -28,17 +34,23 @@ fi
 
 tmp=$(mktemp -d)
 git clone --quiet --depth 1 "$url" "$tmp"
-# evals/.gitkeep is the only evals path on the allowlist, so --delete prunes
+# learn/runs/.gitkeep is the only learn path on the allowlist, so --delete prunes
 # every sibling from the template: that is the point. A run directory names
 # real companies and must never leave, and grades.csv was retired on
 # 2026-09-16, so the template's seeded copy gets pruned on the next export.
-for p in "${TEMPLATE_PATHS[@]}"; do
-  rsync -aR --delete --exclude __pycache__ --exclude .pytest_cache "$p" "$tmp/"
-done
+#
+# One rsync call, never one per path. A path copied on its own makes its parent
+# the whole transfer, and --delete then prunes every sibling, including the ones
+# further down this same allowlist: copying .claude/settings.json by itself
+# deleted the .claude/skills symlink beside it, which is the symlink that makes
+# the skills visible to the tool most people clone this with. Listing every
+# source in one call puts them in one file list, so siblings survive each other.
+rsync -aR --delete --exclude __pycache__ --exclude .pytest_cache \
+      "${TEMPLATE_PATHS[@]}" "$tmp/"
 
 git -C "$tmp" add -A
 if git -C "$tmp" diff --cached --name-only |
-   grep -qE '^(me/|applications/|pipeline\.md|evals\.md|evals/[0-9])'; then
+   grep -qE '^(profile/|source/|apply/|board\.md|learn/lessons\.md|learn/runs/[0-9])'; then
   echo "refusing: a personal path reached the staging area" >&2
   exit 1
 fi
