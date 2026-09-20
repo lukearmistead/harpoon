@@ -1,7 +1,7 @@
 [project]
-name = "harpoon"
+name = "tools"
 version = "0.1.0"
-description = "Engine code for the Harpoon job search repo: schemas now, ATS fetchers next"
+description = "The code an agent runs in a Harpoon job search repo"
 requires-python = ">=3.11"
 dependencies = []
 

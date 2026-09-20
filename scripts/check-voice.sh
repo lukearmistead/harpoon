@@ -12,7 +12,7 @@
 # carries its own rationale log, and that log quotes the posting it answers,
 # which is the only hit this check had on the day it was written. So is a
 # blockquote, and so is this file, which has to spell the phrases out in order
-# to ban them. me/voice.md spells them out too and is not in the scanned set.
+# to ban them. profile/voice.md spells them out too and is not in the scanned set.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
@@ -36,9 +36,9 @@ phrases='not just .*, but|passionate|leverage[sd]? the|leveraging|deep dive|deep
 deliverables=()
 while IFS= read -r -d '' f; do
   case "$f" in
-    applications/*/letter*.md|applications/*/resume*.md) deliverables+=("$f") ;;
+    apply/*/letter*.md|apply/*/resume*.md) deliverables+=("$f") ;;
   esac
-done < <(md 'applications/*.md')
+done < <(md 'apply/*.md')
 
 if [ ${#deliverables[@]} -gt 0 ]; then
   hits=$(grep -nHEi "$phrases" "${deliverables[@]}" 2>/dev/null |

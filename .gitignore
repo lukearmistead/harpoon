@@ -1,10 +1,17 @@
 # Ignore only what is rebuildable or re-exportable. Everything original is
 # tracked: this instance repo is private, and pushing it is the backup.
+#
+# plans/ is the exception and the only original work not backed up by a push.
+# A plan is scaffolding for one piece of work: what it decided lands in the
+# code, the rules or learn/lessons.md, and what is left stays in the plan
+# until it does. A plan whose work has landed moves to plans/archive/.
+# Anything still only in a plan has not been recorded yet.
 .DS_Store
+plans/
 .claude/settings.local.json
-me/network/export/
-applications/*/*.pdf
-me/*.pdf
+profile/network/export/
+apply/*/*.pdf
+profile/*.pdf
 .venv/
 __pycache__/
 .pytest_cache/

@@ -3,7 +3,7 @@
 import pytest
 from types import SimpleNamespace
 
-from harpoon import notes
+from tools import notes
 
 
 def note(directory, name, heading):
@@ -77,9 +77,9 @@ def test_check_fails_on_a_stale_index_and_on_a_missing_summary(tmp_path):
 
 
 def test_check_exits_non_zero_when_something_is_wrong(tmp_path, monkeypatch):
-    note(tmp_path / "me" / "meetings", "2026-09-15-x.md", "2026-09-15 X")
+    note(tmp_path / "profile" / "meetings", "2026-09-15-x.md", "2026-09-15 X")
     monkeypatch.setattr(notes, "ROOT", tmp_path)
-    monkeypatch.setattr(notes, "DATED_DIRS", ("me/meetings",))
+    monkeypatch.setattr(notes, "DATED_DIRS", ("profile/meetings",))
     monkeypatch.setattr(notes, "MATERIAL_DIRS", ())
     with pytest.raises(SystemExit):
         notes.main(["--check"])
@@ -101,7 +101,7 @@ def test_an_index_that_exists_stays_checked_after_the_notes_go(tmp_path):
 
 def test_the_index_never_lists_itself(tmp_path, monkeypatch):
     """Only bites once: the index is untracked until the commit that adds it."""
-    inside = tmp_path / "me" / "network"
+    inside = tmp_path / "profile" / "network"
     inside.mkdir(parents=True)
     listed = ("roster.csv", "index.md", "README.md", ".gitkeep")
     for name in listed:
@@ -109,6 +109,6 @@ def test_the_index_never_lists_itself(tmp_path, monkeypatch):
 
     monkeypatch.setattr(notes, "ROOT", tmp_path)
     monkeypatch.setattr(notes.subprocess, "run", lambda *a, **k: SimpleNamespace(
-        stdout="\0".join(f"me/network/{n}" for n in listed)))
+        stdout="\0".join(f"profile/network/{n}" for n in listed)))
 
     assert [str(p) for p in notes.tracked(inside)] == ["roster.csv"]

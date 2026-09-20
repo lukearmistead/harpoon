@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./scripts/check-all.sh)",
+      "Bash(./scripts/check-citations.sh)",
+      "Bash(./scripts/check-notes-index.sh)",
+      "Bash(./scripts/check-open-questions.sh)",
+      "Bash(./scripts/check-voice.sh)",
+      "Bash(./scripts/check-watch-rows.sh)",
+      "Bash(skills/apply/write-application/render-application.sh:*)",
+      "Bash(python3 -m tools.sweep:*)",
+      "Bash(python3 -m tools.notes)",
+      "Bash(python3 skills/source/sweep-jobs/find-former-colleagues.py:*)",
+      "Bash(python3 skills/source/sweep-jobs/find-network-companies.py:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv sync:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git add:*)",
+      "Bash(git remote -v)",
+      "Bash(git config user.name)",
+      "Bash(git config core.hooksPath:*)",
+      "Bash(gh repo view:*)",
+      "Bash(md5 -q:*)",
+      "Bash(open -R:*)",
+      "Edit(board.md)",
+      "Edit(profile/**)",
+      "Write(profile/**)",
+      "Edit(apply/**)",
+      "Write(apply/**)",
+      "Edit(learn/**)",
+      "Write(learn/**)",
+      "WebSearch"
+    ]
+  }
+}

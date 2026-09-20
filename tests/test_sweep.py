@@ -3,13 +3,14 @@
 import csv
 import json
 import re
+from pathlib import Path
 
-from harpoon import evals, sweep, watch
-from harpoon.contract import Lead
+from tools import evals, sweep, watch
+from tools.contract import Lead
 
 
 def latest_run(tmp_path):
-    return sorted((tmp_path / "evals").glob("*"))[-1]
+    return sorted((tmp_path / "learn/runs").glob("*"))[-1]
 
 
 def sweep_rows(tmp_path):
@@ -19,7 +20,7 @@ def sweep_rows(tmp_path):
 
 def seed_run(tmp_path, name, rows):
     """An earlier run directory, so carry-forward has something to read."""
-    run = tmp_path / "evals" / name
+    run = tmp_path / "learn/runs" / name
     run.mkdir(parents=True)
     with open(run / "sweep.csv", "w", newline="") as f:
         w = csv.writer(f)
@@ -37,8 +38,8 @@ def lead(**kw):
 
 
 def test_catalog_reads_endpoint_cells(tmp_path, monkeypatch):
-    (tmp_path / "me").mkdir()
-    (tmp_path / "me/channels.md").write_text(
+    (tmp_path / "source").mkdir()
+    (tmp_path / "source/channels.md").write_text(
         "| Channel | Endpoint | Works from |\n|---|---|---|\n"
         "| HN hiring | `hn:whoishiring` | monthly thread |\n"
         "| GV | `consider:jobs.gv.com:gv` | fund board |\n"
@@ -51,8 +52,8 @@ def test_catalog_reads_endpoint_cells(tmp_path, monkeypatch):
 def test_catalog_reads_the_watching_column(tmp_path, monkeypatch):
     """A watchlist row has four cells and the third is its criterion; a
     catalog row has three and its third cell is prose."""
-    (tmp_path / "me").mkdir()
-    (tmp_path / "me/channels.md").write_text(
+    (tmp_path / "source").mkdir()
+    (tmp_path / "source/channels.md").write_text(
         "| Beacon AI | `ashby:beaconai` | band > 260 | demoted on peer band |\n"
         "| HN hiring | `hn` | monthly thread |\n")
     monkeypatch.setattr(sweep, "ROOT", tmp_path)
@@ -64,8 +65,8 @@ def test_catalog_reads_the_watching_column(tmp_path, monkeypatch):
 def test_alternation_survives_the_cell_split(tmp_path, monkeypatch):
     """A title regex needs |, which is also the cell separator, so the file
     escapes it and the parse has to put it back."""
-    (tmp_path / "me").mkdir()
-    (tmp_path / "me/channels.md").write_text(
+    (tmp_path / "source").mkdir()
+    (tmp_path / "source/channels.md").write_text(
         "| Kestrel | `greenhouse:flykestrel` | title ~ staff\\|principal | 350 postings |\n")
     monkeypatch.setattr(sweep, "ROOT", tmp_path)
     assert sweep.load_catalog()[0].watching == "title ~ staff|principal"
@@ -87,15 +88,19 @@ def test_band_floor_reads_every_real_shape():
     assert watch.band_floor(None) is None
 
 
-def run_sweep(tmp_path, monkeypatch, capsys, leads, pipeline="", seen=None,
-              channels="| HN | `hn` | |\n", error=None):
-    (tmp_path / "me").mkdir(exist_ok=True)
-    (tmp_path / "me/channels.md").write_text(channels)
-    (tmp_path / "pipeline.md").write_text(pipeline)
-    (tmp_path / "applications").mkdir(exist_ok=True)
+GATES = (Path(__file__).resolve().parent / "fixtures/gates.md").read_text()
+
+
+def run_sweep(tmp_path, monkeypatch, capsys, leads, board="", seen=None,
+              channels="| HN | `hn` | |\n", error=None, gates=GATES):
+    (tmp_path / "source").mkdir(exist_ok=True)
+    (tmp_path / "source/channels.md").write_text(channels)
+    (tmp_path / "source/gates.md").write_text(gates)
+    (tmp_path / "board.md").write_text(board)
+    (tmp_path / "apply").mkdir(exist_ok=True)
     monkeypatch.setattr(sweep, "ROOT", tmp_path)
     monkeypatch.setattr(sweep, "SEEN", tmp_path / ".sweep-seen.json")
-    monkeypatch.setattr(sweep, "EVALS", tmp_path / "evals")
+    monkeypatch.setattr(sweep, "RUNS", tmp_path / "learn/runs")
     if seen is not None:
         (tmp_path / ".sweep-seen.json").write_text(json.dumps(seen))
     monkeypatch.setattr(sweep, "fetch_all", lambda catalog: [("HN", leads, error)])
@@ -111,7 +116,7 @@ def test_fresh_lead_lands_in_digest(tmp_path, monkeypatch, capsys):
 
 def test_already_decided_is_dropped_and_named(tmp_path, monkeypatch, capsys):
     out = run_sweep(tmp_path, monkeypatch, capsys, [lead()],
-                    pipeline="| Acme Health | applied | ...")
+                    board="| Acme Health | applied | ...")
     assert "## New leads (0)" in out
     assert "1 already-decided: Acme Health" in out
 
@@ -126,7 +131,7 @@ def test_wrong_metro_and_title_are_counted(tmp_path, monkeypatch, capsys):
 
 def test_peninsula_dies_at_the_metro_gate_and_remote_does_not(
         tmp_path, monkeypatch, capsys):
-    """me/criteria.md Geography is San Francisco or the East Bay, and remote
+    """profile/criteria.md Geography is San Francisco or the East Bay, and remote
     passes because it requires no move. The gate once took the whole Bay Area,
     which left judgment rejecting peninsula addresses by hand every run."""
     out = run_sweep(tmp_path, monkeypatch, capsys,
@@ -151,7 +156,7 @@ def test_one_call_graded_across_many_postings_counts_once(tmp_path, capsys):
               for name in ("A Co", "B Co", "C Co")]
     seed_run(tmp_path, "2026-01-01T000000", graded)
     seed_run(tmp_path, "2026-01-02T000000", graded)
-    evals.grades(tmp_path / "evals")
+    evals.grades(tmp_path / "learn/runs")
     out = capsys.readouterr().out
     assert "6 rows, 1 calls" in out
     assert "**1** gate too wide" in out
@@ -178,7 +183,7 @@ def test_watched_company_survives_already_decided(tmp_path, monkeypatch, capsys)
     is being watched for one; already-decided must not swallow its postings."""
     out = run_sweep(tmp_path, monkeypatch, capsys,
                     [lead(company="acmehealth")],
-                    pipeline="| Acme Health | lead | watch | ...",
+                    board="| Acme Health | lead | watch | ...",
                     channels="| Acme Health | `greenhouse:acmehealth` | watchlist |\n")
     assert "## New leads (1)" in out
 
@@ -186,7 +191,7 @@ def test_watched_company_survives_already_decided(tmp_path, monkeypatch, capsys)
 def test_watching_one_company_does_not_unwatch_the_rest(tmp_path, monkeypatch, capsys):
     out = run_sweep(tmp_path, monkeypatch, capsys,
                     [lead(company="Other Co", url="https://x.com/9")],
-                    pipeline="| Other Co | lead | now | ...",
+                    board="| Other Co | lead | now | ...",
                     channels="| Acme Health | `greenhouse:acmehealth` | watchlist |\n")
     assert "1 already-decided: Other Co" in out
 
@@ -194,7 +199,7 @@ def test_watching_one_company_does_not_unwatch_the_rest(tmp_path, monkeypatch, c
 def test_decided_matches_whole_names_not_prose(tmp_path, monkeypatch, capsys):
     out = run_sweep(tmp_path, monkeypatch, capsys,
                     [lead(company="Ada", title="Staff ML Engineer", url="https://x.com/3")],
-                    pipeline="**Messages to send.** Ask Adam about the Acme Health seat.")
+                    board="**Messages to send.** Ask Adam about the Acme Health seat.")
     assert "## New leads (1)" in out
 
 
@@ -258,7 +263,7 @@ def test_a_new_run_leaves_an_older_run_alone(tmp_path, monkeypatch, capsys):
                                                     "company": "Older Co"}])
     run_sweep(tmp_path, monkeypatch, capsys, [lead()])
     assert "Older Co" in (old / "sweep.csv").read_text()
-    assert len(list((tmp_path / "evals").glob("*"))) == 2
+    assert len(list((tmp_path / "learn/runs").glob("*"))) == 2
 
 
 def test_a_lead_from_two_channels_is_judged_once_then_marked_duplicate(
@@ -324,7 +329,7 @@ def test_reconcile_knows_a_slug_from_a_display_name(tmp_path, monkeypatch, capsy
     under the ATS slug while the board row carries the display name. Matching
     on one of the two reports a boarded company as unjudged, every run."""
     run_sweep(tmp_path, monkeypatch, capsys, [lead(company="northwind66")],
-              pipeline="| Northwind | lead | x |\n",
+              board="| Northwind | lead | x |\n",
               channels="| Northwind | `greenhouse:northwind66` | |\n")
     assert [r["decision"] for r in sweep_rows(tmp_path)] == ["kept"]
     capsys.readouterr()
@@ -438,3 +443,65 @@ def test_revision_reads_the_engine_not_the_working_directory(tmp_path, monkeypat
     """Anchored on the package, so a test writing elsewhere still stamps truly."""
     monkeypatch.chdir(tmp_path)
     assert evals.revision()["commit"] is not None
+
+
+def test_revision_ignores_an_ambient_git_dir(tmp_path, monkeypatch):
+    """-C loses to GIT_DIR, and .githooks/pre-commit exports one.
+
+    So every check-all.sh run inside a commit asked git about the repo the
+    hook named rather than the directory it was handed, and a run stamped
+    under a hook would have claimed a revision it never read.
+    """
+    monkeypatch.setenv("GIT_DIR", str(Path(".git").resolve()))
+    monkeypatch.setattr(evals, "ROOT", tmp_path)
+    assert evals.revision() == {"commit": None, "dirty": None, "unpushed": None}
+
+
+METRO_LIST = ('san francisco, "sf", bay area, remote, berkeley, oakland, '
+              'emeryville,\nalameda, walnut creek, fremont, hayward')
+
+
+def test_the_gates_file_is_what_decides(tmp_path, monkeypatch, capsys):
+    """The whole point of lifting the words out of Python: a New York search
+    keeps a New York posting, and nobody edits the engine to get it."""
+    out = run_sweep(tmp_path, monkeypatch, capsys,
+                    [lead(location="New York, NY"),
+                     lead(company="B Co", location="Oakland, CA",
+                          url="https://x.com/2")],
+                    gates=GATES.replace(METRO_LIST, "new york, brooklyn"))
+    assert "## New leads (1)" in out
+    assert "1 wrong-metro" in out
+
+
+def test_an_empty_list_switches_its_gate_off(tmp_path, monkeypatch, capsys):
+    """Someone who will work anywhere wants no metro list at all, and an empty
+    keep-list has to keep everything rather than nothing."""
+    out = run_sweep(tmp_path, monkeypatch, capsys, [lead(location="Boise, ID")],
+                    gates=GATES.replace(METRO_LIST, ""))
+    assert "## New leads (1)" in out
+
+
+def test_a_sweep_that_kept_nothing_names_the_gate_and_the_file(
+        tmp_path, monkeypatch, capsys):
+    """Zero leads over a column of counts reads like a quiet market. It is
+    almost always one gate eating everything, and that gate is editable."""
+    out = run_sweep(tmp_path, monkeypatch, capsys,
+                    [lead(location="New York, NY"),
+                     lead(company="B Co", location="Austin, TX",
+                          url="https://x.com/2")])
+    assert "Nothing survived: 2 of 2 postings died at wrong-metro" in out
+    assert "source/gates.md" in out
+
+
+def test_a_quiet_run_says_it_has_already_shown_them(tmp_path, monkeypatch, capsys):
+    out = run_sweep(tmp_path, monkeypatch, capsys, [lead()],
+                    seen={lead().key(): "2026-09-01"})
+    assert "died at seen-before" in out
+    assert "audit" in out
+
+
+def test_a_run_with_leads_explains_nothing(tmp_path, monkeypatch, capsys):
+    out = run_sweep(tmp_path, monkeypatch, capsys,
+                    [lead(), lead(company="B Co", location="New York, NY",
+                                  url="https://x.com/2")])
+    assert "Nothing survived" not in out
