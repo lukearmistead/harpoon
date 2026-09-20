@@ -1,7 +1,7 @@
 """Fetchers for the machine-readable discovery channels.
 
 One function per endpoint type, each returning list[Lead]. Endpoints and
-their quirks are documented in .claude/skills/sweep-jobs/ats-boards.md;
+their quirks are documented in .agents/skills/sweep-jobs/ats-boards.md;
 this module is that file, executable. A dead or unparseable channel raises
 ChannelError so it surfaces as an error row, never as "nothing new".
 """

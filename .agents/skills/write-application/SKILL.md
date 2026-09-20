@@ -16,9 +16,17 @@ gone to three companies is a failure of this skill, not a product.
   worked with.
 - `applications/<slug>/company.md`: the verdict, the open questions, who is
   on the other side of the model. Missing? Stop and run research-company.
-- `me/experience.md` for every claim, `## Positioning and settled answers`
-  and `## Voice` first. Positioning empty? Stop and run gather-experience.
+- `me/positioning.md`, the picks in force. Empty? Stop and run
+  gather-experience.
+- `me/voice.md` before any prose. It holds both halves: how the candidate
+  sounds, and the tells that give an LLM away.
 - `me/resume.md`, the master. The variant is cut from it, never rewritten.
+  **Its `## What backs each bullet` map is how you reach the fact base.** Read
+  the bullet first; open the `me/experience.md` section it names only when this
+  seat needs more than the bullet says, which a letter usually does for one or
+  two projects and a resume variant usually does for none. `me/experience.md`
+  is 1,850 lines and loading it whole to write two paragraphs is the habit this
+  map exists to break.
 
 ## Step 1: Re-validate the seat. Hard gate.
 
@@ -36,7 +44,7 @@ target falls (say so: this skill is where volume creep starts).
 
 ## Step 3: Read the settled answers before drafting, not after
 
-Open `## Positioning and settled answers` and each project's inline picks
+Open `me/positioning.md` and each project's inline picks
 in `me/experience.md` and read what they say today: a cached list goes
 stale. Tailoring pressure pushes toward the stronger phrasing, so the
 picks stay in mind while writing, not applied as a filter at the end. They
@@ -50,13 +58,13 @@ Cut, reorder, and delete. Never add. Every claim traces to
 `me/experience.md`: a number not in there does not go in. Bullets matching
 this seat's problem move first inside each role; never reorder roles or
 change a title or a date. Delete what maps to no problem in the
-positioning section: a variant is shorter, not longer. The summary line
+`me/positioning.md`: a variant is shorter, not longer. The summary line
 comes from `me/resume.md` as it stands; a different emphasis is a
 positioning decision, so ask, and record it in `me/experience.md` first.
 
 ## Step 5: The cover letter
 
-`CLAUDE.md` holds the prose rules and `## Voice` sets the register. Three
+`me/voice.md` holds the prose rules and sets the register. Three
 paragraphs beat four: the specific match, naming what the posting asks for
 and the thing in the corpus that answers it, close enough that the reader
 can check; why the domain is not new ground; and one real question from

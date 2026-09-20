@@ -82,15 +82,21 @@ frames it. Whose work does the model change, does it get better for them or
 only cheaper, who buys, and what number justifies the purchase. This is the
 section worth writing at length.
 
-**Fit against the corpus.** Name the specific projects in
-`me/experience.md` that map to the seat's problem. Do not invent a number,
-title, date or scope claim not in that file; respect its `[check]` flags.
+**Fit against the corpus.** Name the specific projects that map to the seat's
+problem. Start from `me/resume.md`, whose `## What backs each bullet` map names
+the `me/experience.md` section behind each claim, and open only the sections
+this seat actually turns on. Do not invent a number, title, date or scope claim
+not in `me/experience.md`; respect its `[check]` flags.
 
 **Against it.** The honest case. A file with no section arguing against is
 not research.
 
 **Warm paths.** From the export in `me/network/export/` and rosters beside
-it, with names and roles, and who can actually reach the data org.
+it, with names and roles, and who can actually reach the data org. **Grep the
+surname stem, not the surname.** `Mandel` and `Mandell` are one letter apart,
+and searching the longer spelling turned a first-degree connection working at
+the company into a board claim that no connection existed, which then got
+counted as an instance of a shape it was not.
 
 **The grep's result is never "none," and this step ends in a question rather
 than a verdict.** Three files declared no warm path and were wrong within a
@@ -133,7 +139,7 @@ not in that line, the claims in the file are not sourced.
   Ask both explicitly and put the answer in the file, quoted. Three companies in
   eight days were decided on one of these and `me/criteria.md` carries neither:
   a lobbying firm passed on whose access it sells, a company whose posting asks
-  for six days a week, and a founder who says on the record that his company
+  for six days a week, and a founder who says on the record that their company
   works seven and keeps mattresses in the office. A posting states hours,
   onsite expectations and intensity in the same breath as the band, and a
   founder's own interviews state the rest. This is flagged, never resolved: it

@@ -8,7 +8,7 @@ the one given is a sourced ex-colleague.
 
 Run from the repo root:
 
-    python3 .claude/skills/sweep-jobs/find-former-colleagues.py "Acme Health"
+    python3 .agents/skills/sweep-jobs/find-former-colleagues.py "Acme Health"
 
 The report prints to stdout. Review it by hand, then write the survivors to
 me/network/roster-<slug>.md with a line per person naming the source that

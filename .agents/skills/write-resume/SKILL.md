@@ -11,9 +11,13 @@ write-application.
 
 ## Load first
 
-- `me/experience.md` in full, positioning first, `## Voice` before any prose.
-  If it is empty, stop and run gather-experience: nothing reaches the resume
-  that is not in the fact base.
+- `me/experience.md`, `me/positioning.md` first, then the project sections. If it
+  is empty, stop and run gather-experience: nothing reaches the resume that is
+  not in the fact base.
+- `me/voice.md` before any prose.
+- The `me/interviews/` file a pick names, when a pick looks wrong. It holds
+  what was already tried and dropped, which is what stops a settled question
+  from being reopened.
 - `me/criteria.md`, for the problems every bullet gets judged against. If it
   is empty, run write-criteria first: a bullet cannot be judged against
   problems nobody has named.
@@ -42,7 +46,26 @@ education, then the sourcing line.
 - **Barred.** Never appears in any phrasing: contested, unsupported, a
   target.
 - **Missing.** Ships qualitative. Never estimate a magnitude. Send it back to
-  gather-experience and track it under `## Open questions` until it resolves.
+  gather-experience and track it under `# Open questions about the record` in
+  `evals/LEARNINGS.md` until it resolves.
+
+## The bullet map, which this skill owns
+
+`me/resume.md` ends, below `<!-- cut -->`, with `## What backs each bullet`:
+one line per bullet naming the `me/experience.md` section holding the numbers
+behind it. Every other drafting skill reaches the fact base through it and
+opens only what a seat needs, which is the difference between loading 1,850
+lines and loading two. **So a bullet written, rewritten or deleted here updates
+the map the same turn.** `scripts/check-citations.sh` fails on a map line
+naming a section the fact base does not have; it cannot tell you a bullet is
+missing from the map, so that half is yours.
+
+The map also lists the sections no bullet points at, which is the honest half:
+a section ruled out of a resume by its own entry is recruiter-call and letter
+material, not dead weight. Keep that list true too, since it is what tells a
+letter where to look.
+
+The map lives on the master only. A variant carries its own sources line.
 
 ## How a bullet is written
 
@@ -56,13 +79,13 @@ education, then the sourcing line.
   as fault.
 - **Plain words over insider ones.** If an outsider cannot picture it,
   rewrite.
-- **Easy on the commas.** Short declaratives, per the fact base's `## Voice`.
+- **Easy on the commas.** Short declaratives, per `me/voice.md`.
 - **Cut the trailing clause.** Most bullets end with one doing little work.
 
 ## Picks
 
 - A change that drops or rewords a claim is a pick, the candidate's to make.
-  Ask with a recommendation, record it in the positioning section of
+  Ask with a recommendation, record it in `me/positioning.md`
   `me/experience.md` the same turn, then let the resume follow. A layout or
   length pass is not exempt: a claim cut during a restructure is a content
   decision wearing a layout hat.
@@ -76,7 +99,7 @@ education, then the sourcing line.
 - The resume ends with a line naming what was read to write it.
 - **A hole goes back to gather-experience and onto `pipeline.md` the same
   turn.** Sending it back alone puts it on a list the candidate does not read.
-  If only he can fill it, tag the open question `[ask: <Key>]` and put one line
+  If only they can fill it, tag the open question `[ask: <Key>]` and put one line
   under Fact base on the Todo; if it can be verified from the record, `[check]`
   is enough and it stays yours.
 - Reread it against the barred list, since drafts drift toward the stronger

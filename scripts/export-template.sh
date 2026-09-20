@@ -3,21 +3,26 @@
 #
 #   ./export-template.sh "commit message for the template"
 #
-# Copies the engine files (allowlist below, personal paths never named) into
+# Copies the template files (allowlist below, personal paths never named) into
 # a fresh clone of the template repo, shows what changed, commits, pushes.
 # The template's push URL stays DISABLED in this repo's `engine` remote so
 # nothing can leave by accident; this script reads the fetch URL instead.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-ENGINE_PATHS=(CLAUDE.md README.md scripts pyproject.toml uv.lock .gitignore
-              .claude/skills harpoon tests evals/.gitkeep)
+# AGENTS.md is the rulebook and CLAUDE.md is a symlink to it; .agents/skills
+# holds the procedures and .claude/skills is a symlink to that. Both symlinks
+# are on the list and both are relative, so they resolve inside the template
+# exactly as they do here. rsync copies a symlink as a symlink: no -L anywhere.
+TEMPLATE_PATHS=(AGENTS.md CLAUDE.md README.md scripts .githooks pyproject.toml
+              uv.lock .gitignore .agents/skills .claude/skills harpoon tests
+              evals/.gitkeep)
 
 msg=${1:?usage: ./export-template.sh "commit message"}
 url=$(git remote get-url engine)
 
-if [ -n "$(git status --porcelain -- "${ENGINE_PATHS[@]}")" ]; then
-  echo "engine files have uncommitted changes; commit privately first" >&2
+if [ -n "$(git status --porcelain -- "${TEMPLATE_PATHS[@]}")" ]; then
+  echo "template files have uncommitted changes; commit privately first" >&2
   exit 1
 fi
 
@@ -27,7 +32,7 @@ git clone --quiet --depth 1 "$url" "$tmp"
 # every sibling from the template: that is the point. A run directory names
 # real companies and must never leave, and grades.csv was retired on
 # 2026-09-16, so the template's seeded copy gets pruned on the next export.
-for p in "${ENGINE_PATHS[@]}"; do
+for p in "${TEMPLATE_PATHS[@]}"; do
   rsync -aR --delete --exclude __pycache__ --exclude .pytest_cache "$p" "$tmp/"
 done
 

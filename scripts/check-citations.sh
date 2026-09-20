@@ -11,9 +11,25 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
+# Seven paths are created per instance and deliberately never exported: they carry
+# the candidate's own content, so the public template ships the rules that name
+# them without the files themselves. The setup skill creates all seven in a fresh
+# instance. They are reported like local-only material rather than failing,
+# because a template whose own checks fail teaches everyone who clones it to
+# ignore them. Adding a template citation to one of these means adding it here
+# and to the setup skill in the same turn: that has now been the bug twice.
+PER_INSTANCE="evals/LEARNINGS.md me/voice.md me/positioning.md
+me/meetings/index.md me/interviews/index.md me/experience/index.md
+me/network/index.md"
+
 # -z + xargs -0: a tracked file whose own path contains spaces must reach
 # grep as one argument, not two bogus ones.
-files() { git ls-files -z --cached --others --exclude-standard '*.md'; }
+# A file deleted but not yet staged is still in the index, and grepping it
+# prints an error for every citation check that follows. Only what exists.
+files() {
+  git ls-files -z --cached --others --exclude-standard '*.md' |
+    while IFS= read -r -d '' f; do [ -f "$f" ] && printf '%s\0' "$f"; done
+}
 
 cited=$(
   {
@@ -29,10 +45,14 @@ cited=$(
 # anything carrying a placeholder rather than a path.
 cited=$(grep -vE 'YYYY|MM-DD|<[^>]+>|\{[^}]+\}' <<< "$cited")
 
+# A markdown link resolves against the file that carries it, not against the
+# repo root, so both are tried. me/meetings/index.md links a sibling note by
+# bare filename, which is right for whoever opens it and invisible from here.
 absent=$(
   while IFS=: read -r file line path; do
     [ -n "${path:-}" ] || continue
-    [ -e "$path" ] || printf '%s:%s:%s\n' "$file" "$line" "$path"
+    [ -e "$path" ] || [ -e "$(dirname "$file")/$path" ] ||
+      printf '%s:%s:%s\n' "$file" "$line" "$path"
   done <<< "$cited"
 )
 
@@ -47,6 +67,8 @@ while IFS=: read -r file line path; do
   [ -n "${path:-}" ] || continue
   if [ -n "$ignored" ] && grep -qxF "$path" <<< "$ignored"; then
     local_only=$((local_only + 1))
+  elif grep -qw -- "$path" <<< "$PER_INSTANCE"; then
+    local_only=$((local_only + 1))
   else
     echo "$file:$line: missing $path"
     missing=$((missing + 1))
@@ -54,7 +76,21 @@ while IFS=: read -r file line path; do
 done <<< "$absent"
 
 if [ "$local_only" -gt 0 ]; then
-  echo "$local_only citation(s) point at local-only imported material. Absent from a fresh clone by design."
+  echo "$local_only citation(s) point at imported material or at a file created per instance. Absent from a fresh clone by design."
+fi
+
+# The resume's `## What backs each bullet` map names sections of the fact base
+# rather than paths, so the loop above cannot see it. Every drafting skill now
+# reaches me/experience.md through that map, which makes a stale entry a bullet
+# with nothing behind it. Absent in a fresh clone, so this no-ops there.
+if [ -f me/resume.md ] && [ -f me/experience.md ] &&
+   grep -q '^## What backs each bullet' me/resume.md; then
+  while IFS= read -r section; do
+    grep -qxF "$section" me/experience.md && continue
+    echo "me/resume.md: the bullet map names $section, which me/experience.md does not have"
+    missing=$((missing + 1))
+  done < <(sed -n '/^## What backs each bullet/,$p' me/resume.md |
+           grep -oE '`## [^`]+`' | tr -d '`' | sort -u)
 fi
 
 [ "$missing" -eq 0 ] && exit 0
