@@ -14,7 +14,7 @@
 # metadata block. Both live below a <!-- cut --> marker and are stripped here
 # rather than kept in a second copy that drifts.
 #
-# Usage: .claude/skills/write-application/render-application.sh acme-health
+# Usage: .agents/skills/write-application/render-application.sh acme-health
 set -euo pipefail
 skill_dir="$(cd "$(dirname "$0")" && pwd)"
 cd "$skill_dir/../../.."

@@ -19,8 +19,15 @@ scope claim. Nothing may go into a resume, cover letter or outreach unless it
 is in there. This is the guardrail against the failure mode that matters most:
 an AI that will happily invent a plausible metric under time pressure.
 
-**Rules the copilot has to follow.** `CLAUDE.md` holds the engine's
-machinery; `me/criteria.md` holds what you are looking for and how you want
+It is deliberately three files, because they answer different questions and
+rot at different speeds. `me/experience.md` is what happened. `me/positioning.md`
+is which version of it you say out loud. `me/voice.md` is how you sound. How a
+pick was settled, including what lost, is a dated file in `me/interviews/`, so
+the picks stay one page instead of becoming a change log.
+
+**Rules the copilot has to follow.** `AGENTS.md` holds the template's
+machinery, and `CLAUDE.md` is a symlink to it so either name opens the same
+file; `me/criteria.md` holds what you are looking for and how you want
 to be worked with, and wins when they disagree. Both are read before
 anything else happens.
 
@@ -37,7 +44,10 @@ private home of its own.
 2. Install the render toolchain: `brew install pandoc typst uv` and
    `brew install --cask font-inter`.
 3. Open the repo in Claude Code and say "run setup". It verifies the instance:
-   private remote, git identity, toolchain.
+   private remote, git identity, toolchain. It also points git at
+   `.githooks`, which is per-clone configuration rather than a tracked file,
+   and creates the files the template deliberately ships empty because they
+   would otherwise carry somebody else's history.
 4. Drop whatever you have into `me/experience/`: performance reviews,
    self-assessments, old resumes, project docs. Say "build my fact base".
    The gather-experience skill reads everything, interviews you to fill the
@@ -49,7 +59,7 @@ private home of its own.
 6. Say "write my resume". The write-resume skill cuts the master resume
    from the fact base, judged against your criteria.
 7. Export your LinkedIn data into `me/network/export/` (see
-   `me/network/README.md`).
+   `me/network/index.md`).
 8. Say "find me some companies". The sweep seeds your channel catalog on its
    first run, then sources, filters against your criteria, and puts survivors
    and rejections on the board.
@@ -84,7 +94,7 @@ flowchart LR
 
     facts -.->|"no claim may be invented"| apply
     debrief -.->|"what you learned"| facts
-    grade -.->|"three of a kind<br/>changes a rule"| criteria
+    grade -.->|"three of a kind<br/>raises a rule change"| criteria
 ```
 
 Two bands, both reading left to right. Along the top, postings arrive and get
@@ -96,7 +106,8 @@ The three dotted lines are the part that makes this different from a
 spreadsheet. Nothing reaches an application that is not already in the fact
 base. What you learn in a conversation goes back into it. And every decision the
 search makes is logged with its reason and graded later, so a rule that keeps
-being wrong gets changed rather than argued about again.
+being wrong gets changed rather than argued about again. Three of a kind
+raises the change; you decide whether to make it.
 
 1. **Source.** The sweep-jobs skill fans agents across your channel catalog and
    your network export, then filters what comes back against your criteria.
@@ -110,13 +121,15 @@ being wrong gets changed rather than argued about again.
    PDFs an applicant tracking system will accept.
 5. **Debrief.** Notes from conversations go in `me/meetings/`. After an
    interview, write the debrief while it is fresh.
-6. **Feed it back.** A lesson worth keeping becomes a criteria change or a
-   channel note in the same turn it is learned, and a call that proves wrong
-   gets the row that made it adjudicated under `evals/`.
+6. **Feed it back.** A call that proves wrong gets the row that made it
+   adjudicated under `evals/`. A lesson with no row to put it in, about
+   research quality or how a skill sequences its work, goes in
+   `evals/LEARNINGS.md`, and reaches your Todo as a proposed rule once the
+   same shape has happened three times.
 
 ## Using it day to day
 
-Talk to the copilot in plain language. The rules in `CLAUDE.md` do the
+Talk to the copilot in plain language. The rules in `AGENTS.md` do the
 routing.
 
 | Say this | What happens |
@@ -142,27 +155,55 @@ pipeline.md         the board. Stage, next action, overrides, rejections
 evals/              one directory per sweep run: run.json, sweep.csv and
                     judgment.csv. Each row is a prediction, and its empty
                     adjudication columns are where a call gets graded in the
-                    machine learning sense
+                    machine learning sense. LEARNINGS.md beside them holds what
+                    a run taught when there was no row to put it in
 applications/       one directory per company. company.md holds the research
                     and its dated log, then the resume variant, the cover
                     letter, form-fill.md, takehomes, prep docs, post-mortems,
                     and the rendered PDFs
 me/criteria.md      what counts as a good job. Under 100 lines on purpose
-me/experience.md    the fact base. Every number lives here or nowhere
-me/resume.md        the master resume
+me/experience.md    the fact base. Every number lives here or nowhere. The
+                    timeline and one section per project, facts only
+me/positioning.md   the picks in force, one page. Which version of a claim
+                    gets said out loud, and what never goes on paper
+me/resume.md        the master resume, and the short form of the fact base:
+                    its bullet map names the section behind each claim, so an
+                    agent reads 120 lines and opens only what it needs
+me/voice.md         how you sound, and the register to match in your name
 me/channels.md      where the sweep looks, and what it has learned
-me/interviews/      the interview sessions the fact base cites as authority
+me/interviews/      how each settled answer was settled, dated. The fact base
+                    and the positioning both cite these as authority
 me/meetings/        notes from conversations
 me/experience/      raw source material: reviews, analyses, documents
 me/network/         LinkedIn export under export/, derived rosters beside it
-.claude/skills/     the nine procedures: setup, gather-experience,
+                    All four carry an index.md, generated, one line per note or
+                    per group of files, so an agent can see what is in a
+                    directory without opening everything in it
+.agents/skills/     the nine procedures: setup, gather-experience,
                     write-criteria, write-resume, sweep-jobs,
                     research-company, write-application, update-board,
                     review-evals. Skill-owned scripts and reference files
                     sit inside their skill directory
-harpoon/            engine code with tests/ beside it
-CLAUDE.md           the rules the copilot follows
-scripts/check-citations.sh  fails on a cited path that is missing and not gitignored
+harpoon/            the code, with tests/ beside it
+AGENTS.md           the rules the copilot follows. CLAUDE.md is a symlink to
+                    it, and .claude/skills one to .agents/skills, so nothing
+                    here is pegged to a single vendor and nothing is stored
+                    twice
+scripts/check-all.sh  every check below plus the tests. .githooks/pre-commit
+                    runs it, so a commit is the thing that runs them
+scripts/check-citations.sh  fails on a cited path that is missing and not
+                    gitignored, and on a resume bullet map naming a fact base
+                    section that does not exist
+scripts/check-open-questions.sh  fails on an open question only you can answer
+                    that has not reached your Todo
+scripts/check-notes-index.sh  fails on a note index that is stale or has an
+                    entry nobody has summarized
+scripts/check-voice.sh  fails on an em dash, and on banned phrasing in a
+                    letter or a resume
+scripts/check-watch-rows.sh  fails on a watched company no channel watches
+scripts/export-template.sh  publishes the template files to the public
+                    repo. The one deliberate door, and personal paths are never
+                    on its allowlist
 ```
 
 ## Why markdown, when the resume ends up a PDF
@@ -171,7 +212,7 @@ Because the master resume gets cut into a variant per company, and reviewing
 what changed between two variants has to be one glance at a diff. That only
 works if the source is prose. So the seam is markdown for content, Typst for
 layout, in `resume.typ` inside the write-application skill, and
-`.claude/skills/write-application/render-application.sh` beside it turns a
+`.agents/skills/write-application/render-application.sh` beside it turns a
 draft into the PDF an applicant tracking system will accept. When markdown cannot express something, raw
 Typst passes straight through a fenced block.
 
@@ -195,8 +236,8 @@ happened to someone.
 
 ## Contributing
 
-Your instance is private and stays that way. What flows back is engine
+Your instance is private and stays that way. What flows back is template
 material: a fix to a skill, a new ATS quirk, a schema improvement. The seam is
-already drawn, engine files carry nothing personal, so when the copilot flags
-a lesson as engine material, let it open a PR here. Personal rules, channels,
+already drawn, template files carry nothing personal, so when the copilot flags
+a lesson as template material, let it open a PR here. Personal rules, channels,
 and criteria never belong upstream.

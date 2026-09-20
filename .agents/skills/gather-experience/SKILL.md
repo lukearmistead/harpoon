@@ -13,7 +13,8 @@ candidate telling the same stories twice.
 
 ## Load first
 
-- `me/experience.md` as it stands, positioning first.
+- `me/positioning.md`, the picks in force, then `me/experience.md` as it
+  stands.
 - `me/interviews/`, for anything said since the fact base was written.
 - `me/meetings/`, for market signal the fact base cannot supply on its own.
 
@@ -35,8 +36,8 @@ early.
 a personal site, a published talk: fetch it and read it. Asking the candidate to
 describe something a reader can open is a worse version of reading it, and the
 answers it produces are vaguer than the artifact. A candidate said "just go to
-the GitHub page" after three interview questions were queued about his own
-project, and the code answered two of them better than he would have, naming the
+the GitHub page" after three interview questions were queued about their own
+project, and the code answered two of them better than they would have, naming the
 exact model, the constrained output schema and the absence of any evaluation,
 which is the thing the interview would never have surfaced because nobody
 volunteers a missing eval. Then interview for only what the artifact cannot
@@ -58,17 +59,35 @@ lands.
 
 **3. Write the interview down.** One dated file per session,
 `me/interviews/YYYY-MM-DD-topic.md`: verbatim answers, who said what, what is
-still open. The fact base cites it as authority.
+still open. The fact base cites it as authority. Then run
+`python3 -m harpoon.notes` and write the session's one-line summary into
+`me/interviews/index.md`, which is how anyone finds it later without opening
+every file in the directory. The generator adds the line; only the summary is
+yours, and `scripts/check-notes-index.sh` fails until it is written.
 
-**4. Write the fact base.** `me/experience.md` holds every number, title,
-date, and scope claim, and nothing reaches a resume that is not in it. It
-opens with `## Positioning and settled answers`, the picks, then
-`## Open questions`, the recovery list, then `## Timeline`, one section per
-project, and `## Voice`. Each project's section keeps the short story too:
-the problem, what went sideways, what the candidate did. Cover letters and
-interview prep pull from it, and a fact base of bare numbers answers no
-behavioral question. `[check]` marks a claim to confirm, and contradictions
-between sources stay.
+**4. Route what the session produced, three ways.** This is one decision per
+thing learned, and collapsing it is how the fact base grew to 2,785 lines.
+
+- **The fact goes in `me/experience.md`**, which holds every number, title,
+  date and scope claim, and nothing reaches a resume that is not in it. It is
+  `## Timeline` and one section per project, and nothing else. Each project's section keeps the short story too: the
+  problem, what went sideways, what the candidate did. Cover letters and
+  interview prep pull from it, and a fact base of bare numbers answers no
+  behavioral question. `[check]` marks a claim to confirm, and contradictions
+  between sources stay.
+- **The pick goes in `me/positioning.md`**, stated as the rule in force and
+  nothing more. No chain of drafts, no dates on who changed what, no argument
+  that lost: a reader wants what to write, not how it was decided.
+- **How it was settled goes in `me/interviews/`**, not into the fact base. The
+  chain of drafts, the version that lost, the objection that was overruled:
+  all of it dated, and named from the pick it produced so the pick is one line
+  with a pointer rather than a page of history. A pick in `me/positioning.md`
+  that names no file is a pick nobody can check.
+- **What is still open goes in `evals/LEARNINGS.md`** under `# Open questions
+  about the record`, with an `[ask: <Key>]` and a matching Todo line if only
+  the candidate can answer it.
+
+Voice is none of the three: how the candidate sounds lives in `me/voice.md`.
 
 ## When the candidate pushes back
 
@@ -90,7 +109,7 @@ not weaker.
 - **An edit the candidate makes in a file is a pick, not a draft.** Sync the
   fact base to it rather than auditing it back.
 - A pick is theirs: which identity leads, whether an open question is
-  settled. Ask with a recommendation, record it in the positioning section,
+  settled. Ask with a recommendation, record it in `me/positioning.md`,
   then let everything downstream follow.
 
 ## Finish
@@ -100,7 +119,7 @@ name what runs next. An empty `me/criteria.md` means write-criteria; a stale
 `me/resume.md` means write-resume.
 
 **File the questions where the candidate will see them.** This skill writes the
-open questions list, and that list is not a page he reads. Any entry only he
+open questions list, and that list is not a page they read. Any entry only they
 can answer gets `[ask: <Key>]` and a matching line on `pipeline.md`'s Todo under
 Fact base, one or two lines, while the detail stays here. The rest keep
 `[check]`, which is yours to verify. `./scripts/check-open-questions.sh` proves
@@ -108,6 +127,6 @@ the tagged ones landed.
 
 **Close in both directions.** When an entry is answered, strike it through with
 the date here and take its Todo line off the same turn. This is the half that
-rots: one entry read "two open items, both his" for a day after both were
+rots: one entry read "two open items, both theirs" for a day after both were
 settled on the board and in `me/criteria.md`, because nothing carried the
 answer back. Ask before committing.

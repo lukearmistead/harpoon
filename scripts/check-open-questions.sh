@@ -12,7 +12,12 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-files() { git ls-files -z --cached --others --exclude-standard '*.md'; }
+# a file deleted but not yet staged is still in the index, and grep would
+# rather say so on stderr every run: the same filter check-citations.sh makes
+files() {
+  git ls-files -z --cached --others --exclude-standard '*.md' |
+    while IFS= read -r -d '' f; do [ -f "$f" ] && printf '%s\0' "$f"; done
+}
 
 asked=$(files | xargs -0 grep -noE '\[ask: *[^]]+\]' | sed 's/\[ask: *//; s/\]$//')
 

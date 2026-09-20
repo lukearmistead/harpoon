@@ -8,7 +8,7 @@ direction through the file find-former-colleagues.py reads.
 
 Run from the repo root:
 
-    python3 .claude/skills/sweep-jobs/find-network-companies.py > /tmp/net.txt
+    python3 .agents/skills/sweep-jobs/find-network-companies.py > /tmp/net.txt
 
 Companies pipeline.md has already decided are dropped, so the report is what
 is new. Review it by hand and resolve the ones that look on-thesis with

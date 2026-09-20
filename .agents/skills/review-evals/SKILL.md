@@ -21,6 +21,10 @@ file, not in any eval row, and would have missed it by starting with the data.
 
 `CLAUDE.md` holds the adjudication rules. This file does not restate them.
 
+`evals/LEARNINGS.md`, all of it, because counting what repeats is this skill's job and
+the entries are where the things with no eval row live. Read it beside the
+adjudicated rows, not instead of them.
+
 ## Step 1: Check that the recorded fixes happened
 
 The highest-yield move, and it goes first because everything downstream trusts
@@ -93,7 +97,8 @@ is data and belongs in the log next to the misses.
 
 ## Step 6: Put the fix where it lives, then check what cites it
 
-Code or rules, and the `fix` column only describes it. Then:
+Code or rules, and the `fix` column only describes it. A fix to a skill or to
+`AGENTS.md` is the candidate's call rather than yours: see step 7. Then:
 
 - **Grep before renaming anything.** Skills and reference files name each other's
   sections, and a rename that breaks those references defeats the change it is
@@ -101,6 +106,20 @@ Code or rules, and the `fix` column only describes it. Then:
 - **A test pins a rule that drifted once.** The drift is the evidence that
   nothing was holding it.
 - Run the check scripts. Nothing runs them for you.
+
+## Step 7: Take what repeats to the candidate, and close what they answer
+
+`evals/LEARNINGS.md` entries and adjudicated shapes are counted the same way, and
+neither promotes itself. When a shape reaches three, put **one line** on
+`pipeline.md`'s Todo under **Decisions, the candidate's**: the shape, how many
+times it has happened, and a recommendation, into the skill that owns it or into
+`AGENTS.md` if it crosses skills. Then stop. They answer.
+
+When they do, write the rule, and close the entries it came from the same turn
+with a pointer to what they became. An entry that stays open after its answer
+arrives is the Todo failure this repo already knows: the answer never travelled
+back. An entry they decline is closed too, saying they declined it, because an
+unanswerable pile is what makes the next reader skip the file.
 
 ## Scope, and what is not yours
 
@@ -110,6 +129,8 @@ Code or rules, and the `fix` column only describes it. Then:
   a line on `pipeline.md`, never an edit.
 - Recorded verdicts on the board are picks. Rewording them, even to fix
   shorthand the rules ban, is the candidate's yes.
+- **`AGENTS.md` is theirs too.** A rule reaches it as a draft in conversation and a
+  line on the Todo, never as an edit you make and mention afterwards.
 - Ask before committing.
 
 ## Precision, because a durable doc outlives the session

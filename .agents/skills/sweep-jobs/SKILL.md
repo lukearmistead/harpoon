@@ -36,7 +36,10 @@ only the new leads plus a count per drop reason.
 Each run writes `evals/<run-id>/`, named for the second it started so two
 runs in a day cannot overwrite each other. `sweep.csv` is one row per lead
 and its `decision` is the gate that fired or `kept`; `run.json` holds the
-gate order, the per-channel counts and the fetch errors.
+gate order, the per-channel counts, the fetch errors and the revision that
+produced them: the commit, whether the tree was dirty, and how many commits
+had not been pushed. A dirty tree means the commit does not describe the code
+that ran, so a grade taken off that run is weaker than it looks.
 `python3 -m harpoon.sweep audit` reruns every gate against all live
 postings, ignoring the seen-cache.
 

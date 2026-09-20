@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# The checks run on commit, because "nothing runs it for you" was true of this
+# repo for its first two weeks and a rule with no instrument is a rule that
+# holds until somebody is busy.
+#
+# Installed by `git config core.hooksPath .githooks`, which the setup skill
+# does and verifies. It is per-clone configuration, not a tracked file, so a
+# fresh clone has to run it once.
+#
+# To commit anyway, `git commit --no-verify`. That is a deliberate choice and
+# not a failure: a half-finished note index should not block writing down what
+# somebody just said.
+set -uo pipefail
+
+exec "$(git rev-parse --show-toplevel)/scripts/check-all.sh"

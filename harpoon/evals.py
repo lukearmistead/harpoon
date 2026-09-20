@@ -10,9 +10,13 @@ rate becomes measurable, and it is the only place a grade belongs.
 
 import csv
 import json
+import subprocess
 import sys
+from pathlib import Path
 
 from harpoon.contract import Lead, norm
+
+ROOT = Path(__file__).resolve().parent.parent
 
 ADJUDICATION = ("adjudication", "judge", "adjudicated", "shape", "fix", "note")
 SWEEP_COLUMNS = ("decision", *ADJUDICATION, "company", "title", "location",
@@ -55,10 +59,38 @@ def prior_adjudications(run_dir):
     return labels
 
 
+def revision():
+    """Which code produced this run, and whether that is even knowable.
+
+    A run directory is evidence, and a sha on its own overstates it: a dirty
+    tree means the commit does not describe what ran, and commits that never
+    left the machine cannot be fetched by whoever reads the run later. Git runs
+    against this file's own repo rather than the working directory, so a test
+    writing into a tmp path still stamps the engine it exercised. Every field
+    is null where there is no git and no repo, which is the fresh clone of the
+    template.
+    """
+    def git(*args):
+        try:
+            done = subprocess.run(("git", "-C", str(ROOT), *args),
+                                  capture_output=True, text=True)
+        except OSError:
+            return None
+        return done.stdout.strip() if done.returncode == 0 else None
+
+    commit = git("rev-parse", "--short", "HEAD")
+    status = git("status", "--porcelain")
+    unpushed = git("rev-list", "--count", "@{upstream}..HEAD")
+    return {"commit": commit,
+            "dirty": None if status is None else status != "",
+            "unpushed": None if unpushed is None else int(unpushed)}
+
+
 def write_run(rows, run_dir, meta):
     """One directory per sweep instance: what the run did, and what it read
     to do it. sweep.csv is one row per lead, and its adjudication columns
-    start empty for a human or a model to fill in later."""
+    start empty for a human or a model to fill in later. The revision is
+    stamped here rather than by the caller, so no caller can forget it."""
     run_dir.mkdir(parents=True, exist_ok=True)
     carried = prior_adjudications(run_dir)
     blank = [""] * len(ADJUDICATION)
@@ -69,6 +101,7 @@ def write_run(rows, run_dir, meta):
             w.writerow([decision, *carried.get((l.key(), decision), blank),
                         l.company, l.title, l.location, l.band or "",
                         l.url or "", l.source])
+    meta = meta | {"revision": revision()}
     (run_dir / "run.json").write_text(json.dumps(meta, indent=2) + "\n")
 
 

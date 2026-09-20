@@ -33,8 +33,8 @@ Six, one per row.
   written the fetcher, like the Rippling and Workday rows. The fix there is the
   fetcher, not a standing manual chore, so those rows are `lead` until it is
   written. Hand-watching one instead is the candidate's call, never a default.
-- `rejected`: they declined him.
-- `passed`: he declined them.
+- `rejected`: they declined the candidate.
+- `passed`: the candidate declined them.
 
 `scripts/check-watch-rows.sh` enforces the `watch` rule. Run it after any
 status change. Eight rows failed it on 2026-09-16, which is why it exists.
@@ -50,6 +50,12 @@ status change. Eight rows failed it on 2026-09-16, which is why it exists.
   What to do next is `## Todo`, rebuilt from the rows.
 - What blocks a row goes in its `next` cell in prose, whatever the status: a
   question owed, a person to reach, a decision that is the candidate's.
+- **Two or three sentences per `next` cell, and that is a ceiling.** The cell
+  names the block; `applications/<company>/company.md` carries the research,
+  the corrections and the reasoning, and it wins any disagreement. Write the
+  finding into the file first, then say in the row what it means for the next
+  move. One cell reached 4,500 characters because every turn appended to the
+  row instead of the file, which puts the page they actually read out of reach.
 - The date is the row's last touch, not its last move. It is not a staleness
   signal, because a sweep that re-finds a posting dates a row exactly like a
   meeting does.
@@ -58,7 +64,7 @@ status change. Eight rows failed it on 2026-09-16, which is why it exists.
 
 **This is the inbox for everything that needs the candidate, not just
 companies.**
-`pipeline.md` is the one page he reads, so a question about the fact base, the
+`pipeline.md` is the one page they read, so a question about the fact base, the
 resume, the criteria or a form belongs here the turn it is raised. Anywhere
 else and it is a private backlog: the fact base once held twenty open questions
 against three lines here.
@@ -74,38 +80,41 @@ Four blocks, in this order:
   `[ask: <Key>]` in `me/` has a line here, and `scripts/check-open-questions.sh`
   proves it. `[check]` items are yours to verify and do not belong here.
 - **Decisions, the candidate's**: a call only they can make, each with a
-  recommendation.
+  recommendation. This is also where a rule change reaches them: `review-evals`
+  puts a repeated shape here as one line, the shape, its count and a
+  recommendation, and nothing in `evals/LEARNINGS.md` becomes a rule until they
+  answer it.
 
 **Urgent only, and that is a hard filter.** A line earns its
-place by being blocked on him, ready to send, or a live seat worth acting on
+place by being blocked on them, ready to send, or a live seat worth acting on
 now. Everything else lives in its row's `next` cell, which is where it came
 from and where it is not lost. A Todo rebuilt to name every lead row is a
 second copy of the board: thirty-two leads became forty-one Todo items once,
-and he asked for the non-urgent ones taken back off the same day. Completeness
+and they asked for the non-urgent ones taken back off the same day. Completeness
 is the board's job. Being short enough to read is this one's.
 
 **There is no standing-constraints block.** One existed and was removed on
 on the candidate's instruction: "the audience for that is the large language
 model." What is true across every row belongs in a skill, in `me/criteria.md`,
-or in the row, never on the page he reads. Two things that block carried, kept
+or in the row, never on the page they read. Two things that block carried, kept
 here because they are still true:
 
 - **No cap on applications in flight.** A two-in-flight ceiling was removed on
   2026-09-16. It stopped nothing seven times running and nothing enforced it.
-  `me/criteria.md` is what keeps the volume honest: a seat at his level, a band
+  `me/criteria.md` is what keeps the volume honest: a seat at their level, a band
   topping $200K, and the operator test. Flag volume over depth; do not invent
   a limit.
 - **A criteria change reopens rows, and reopened rows are unverified.** The
   2026-09-11 rewrite reopened twelve remote rows that have never been
   re-checked. Re-verifying them is the freshness pass's first job, not a line
-  on his Todo.
+  on their Todo.
 
 Rebuild from the sources rather than maintaining alongside them. An item with
 nothing behind it, no row and no file, does not belong here at all.
 
 **Closing is half the job and the half that rots.** When something is answered,
 take its Todo line off and close it in its home file the same turn. One
-`me/experience.md` entry read "two open items, both his" for a day after both
+`me/experience.md` entry read "two open items, both theirs" for a day after both
 were settled, because the answer never travelled back.
 
 ## Changing a status

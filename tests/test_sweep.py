@@ -417,3 +417,24 @@ def test_unwatched_company_ignores_the_new_step(tmp_path, monkeypatch, capsys):
                     [lead(band="$90K – $100K")], channels=WATCH_BEACON)
     assert "## New leads (1)" in out
     assert "watch-criterion" not in out
+
+
+def test_run_json_stamps_the_revision(tmp_path, monkeypatch, capsys):
+    """A run directory is evidence, so it has to say which code produced it."""
+    run_sweep(tmp_path, monkeypatch, capsys, [lead()])
+    rev = json.loads((latest_run(tmp_path) / "run.json").read_text())["revision"]
+    assert re.fullmatch(r"[0-9a-f]{7,40}", rev["commit"])
+    assert isinstance(rev["dirty"], bool)
+    assert isinstance(rev["unpushed"], int)
+
+
+def test_revision_survives_a_repo_that_is_not_one(tmp_path, monkeypatch):
+    """The template's fresh clone has no git history and must not crash a run."""
+    monkeypatch.setattr(evals, "ROOT", tmp_path)
+    assert evals.revision() == {"commit": None, "dirty": None, "unpushed": None}
+
+
+def test_revision_reads_the_engine_not_the_working_directory(tmp_path, monkeypatch):
+    """Anchored on the package, so a test writing elsewhere still stamps truly."""
+    monkeypatch.chdir(tmp_path)
+    assert evals.revision()["commit"] is not None
