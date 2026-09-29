@@ -1,16 +1,18 @@
 """The machine lane of the sweep: fetch, dedupe, filter, digest.
 
-    python3 -m tools.sweep            sweep every cataloged channel
-    python3 -m tools.sweep audit      rerun every gate, ignoring the cache
-    python3 -m tools.sweep probe X    find company X's ATS board and seats
-    python3 -m tools.sweep reconcile  kept leads the newest run never judged
-    python3 -m tools.sweep grades     what the adjudications have measured
+    python3 -m tools.source.sweep            sweep every cataloged channel
+    python3 -m tools.source.sweep audit      rerun every gate, ignoring the cache
+    python3 -m tools.source.sweep probe X    find company X's ATS board and seats
+    python3 -m tools.source.sweep reconcile  kept leads the newest run never judged
+    python3 -m tools.source.sweep grades     what the adjudications have measured
+    python3 -m tools.source.sweep rejudge    verdicts a criteria edit invalidated
 
 Reads the catalog from source/channels.md (rows with an Endpoint cell), drops
-what the repo has already decided and what earlier runs already surfaced
-(.sweep-seen.json, gitignored), applies the deterministic gates whose words
-live in source/gates.md, and prints only what is new. Judgment against
-profile/criteria.md stays in the main thread; this prints facts.
+the companies that file's `## Companies` table has closed and what earlier runs
+already surfaced (.sweep-seen.json, gitignored), applies the deterministic
+gates whose words live in source/gates.md, and prints only what is new.
+Judgment against profile/criteria.md stays in the main thread; this prints
+facts.
 
 Every run writes learn/runs/<run-id>/, one directory per sweep instance: run.json
 and sweep.csv, one row per lead, its decision the gate that fired or "kept".
@@ -23,17 +25,17 @@ import json
 import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
 from typing import NamedTuple
 
-from tools import tables
-from tools.boards import FETCHERS, ChannelError
-from tools.contract import norm
-from tools.evals import grades, reconcile, write_run
-from tools.gates import load as load_gates
-from tools.watch import meets
+from tools.core import tables
+from tools.core.contract import norm
+from tools.core.repo import ROOT
+from tools.learn.evals import grades, reconcile, write_run
+from tools.source import rejudge
+from tools.source.boards import FETCHERS, ChannelError
+from tools.source.gates import load as load_gates
+from tools.source.watch import meets
 
-ROOT = Path(__file__).resolve().parent.parent
 SEEN = ROOT / ".sweep-seen.json"
 RUNS = ROOT / "learn/runs"
 
@@ -60,12 +62,17 @@ class Channel(NamedTuple):
 def load_catalog():
     """Rows whose Endpoint cell names a fetcher.
 
-    A four-cell row is a watchlist row and its third cell is the criterion; a
+    A four-cell row is a company row and its third cell is the condition; a
     three-cell catalog row carries prose there instead, so cell count is what
     tells them apart.
+
+    Read from those two sections and nowhere else in the file, because a reader
+    of every table fetches whatever the next section turns out to hold, and
+    `## Not worth fetching` names boards on purpose.
     """
     rows = []
-    for cells in tables.rows((ROOT / "source/channels.md").read_text()):
+    for cells in tables.rows_under((ROOT / "source/channels.md").read_text(),
+                                   "Catalog", "Companies"):
         if len(cells) >= 2:
             kind, _, arg = cells[1].partition(":")
             if kind in FETCHERS:
@@ -75,55 +82,111 @@ def load_catalog():
 
 
 def decided_names():
-    """Exact normalized names only: a substring match against the pipeline
-    text drops every company whose name occurs in prose ("Ada", "Remote")."""
+    """Companies the repo has a board row or an apply/ directory for.
+
+    Both are evidence that a company was decided rather than a record of what
+    was decided, which is what the `## Companies` table holds. Names are matched
+    whole and normalized, because a substring match against the pipeline text
+    drops every company whose name occurs in prose ("Ada", "Remote").
+
+    A board cell is a markdown link once its company has a file, so the link is
+    stripped before the name is normalized. Without that the cell normalizes
+    whole, to `abbycareapplyabbycarecompanymd`, which no posting can ever match.
+    That was true for months and cost nothing, because a linked row also has the
+    `apply/` directory this reads beside it, so the clean name arrived anyway.
+    The board half of this function was doing nothing on its own.
+
+    A third source stood here and took every `**bolded**` phrase on board.md,
+    which is how Intercom's 27 postings were gated by its own name under
+    `## Network assets, not targets`, a section whose first line says the
+    company is not the point.
+    """
     names = {norm(d.name) for d in (ROOT / "apply").iterdir() if d.is_dir()}
-    text = (ROOT / "board.md").read_text()
-    for cells in tables.rows(text):
-        names.add(norm(cells[0]))
-    names |= {norm(b) for b in re.findall(r"\*\*([^*]+?)\*\*", text)}
+    for cells in tables.rows((ROOT / "board.md").read_text()):
+        names.add(norm(tables.unlink(cells[0])))
     return names - {"", norm("Company")}
 
 
 EMPLOYER_KINDS = {"ashby", "greenhouse", "lever", "smartrecruiters", "workable"}
 
 
-def watched_names(catalog):
-    """Companies cataloged as their own channel in source/channels.md.
+def company_rows(channels):
+    """The `## Companies` table, each row as its display name and condition.
 
-    A promising company with no seat sits on the board and is swept anyway, so
-    that a new posting is noticed the run it appears. Without this, its own
-    board row would drop it as already-decided and the watch would be silent.
-    Fund and aggregator channels are excluded: their leads are portfolio
-    companies, not the channel itself. The exemption lasts as long as the
-    catalog row does, so deleting the row is how watching stops.
+    The condition is lowercased and stripped before anything compares it to
+    `never`, because tables.rows takes off the backticks the schema writes that
+    token in and leaves the spaces that were inside them. A cell reading `Never`
+    or ` never ` otherwise compares unequal and reopens the company silently.
+
+    The display name comes back with it, so a check can name the row a person
+    has to go and fix.
     """
-    return {norm(ch.arg) for ch in catalog if ch.kind in EMPLOYER_KINDS} | \
-           {norm(ch.name) for ch in catalog if ch.kind in EMPLOYER_KINDS}
+    for cells in tables.rows_under(channels, "Companies"):
+        if len(cells) >= 3 and norm(cells[0]) not in ("", norm("Company")):
+            yield cells[0], cells[2].strip().lower()
 
 
-def watch_criteria(catalog):
-    """Each watched company's pass condition, keyed the two ways
-    watched_names keys its set.
+def company_criteria(channels, catalog):
+    """Each company's condition, keyed by display name and by ATS slug.
 
-    A lead's company comes back from the ATS as the display name or as
-    something near the slug ("Acme" against flyacme). Keying on one of
-    the two leaves the criterion unfound, and that fails open: the company is
-    already exempt from already-decided, so its postings would reach the
-    digest unchecked while the watch looked like it worked.
+    A lead's company comes back from the ATS as the display name or as something
+    near the slug ("Acme" against flyacme), and keying on one of the two leaves
+    the condition unfound. That fails in whichever direction hurts: a watched
+    company's postings would reach the digest unchecked, or a closed company's
+    would reopen it.
+
+    Until 2026-09-28 this was two functions over two tables, because a watched
+    company and a closed one were different kinds of thing. They are not: both
+    rows say what would make a posting here worth reading, and the difference
+    between them is the Endpoint cell, which says whether anyone fetches it.
     """
-    criteria = {}
+    criteria = {norm(name): condition for name, condition in company_rows(channels)}
     for ch in catalog:
-        if ch.watching and ch.kind in EMPLOYER_KINDS:
-            criteria[norm(ch.name)] = ch.watching
-            criteria[norm(ch.arg)] = ch.watching
+        if ch.kind in EMPLOYER_KINDS and norm(ch.name) in criteria:
+            criteria[norm(ch.arg)] = criteria[norm(ch.name)]
     return criteria
 
 
-def watch_miss(lead, ctx):
-    """True when the company is watched for something this posting is not."""
-    criterion = ctx["watching"].get(norm(lead.company))
-    return bool(criterion) and not meets(lead, criterion)
+def criterion_miss(lead, ctx):
+    """True when the company has a row and this posting is not what it is
+    waiting for.
+
+    An empty condition passes on any posting, `never` fails on every one, and
+    anything else is the watch language, evaluated by tools/source/watch.py.
+    """
+    condition = ctx["companies"].get(norm(lead.company))
+    if condition is None:
+        return False
+    return condition == "never" or (bool(condition) and not meets(lead, condition))
+
+
+def fetched_companies(channels):
+    """The companies something actually goes and looks at, which is a row with
+    an endpoint. A row without one is still a decision; it is just nobody's job
+    to check. That distinction used to be which of two tables the row was in."""
+    return {norm(cells[0]) for cells in tables.rows_under(channels, "Companies")
+            if len(cells) >= 2 and cells[1].strip()
+            and norm(cells[0]) not in ("", norm("Company"))}
+
+
+def decided_miss(lead, ctx):
+    """True when the repo shut this company and nobody is watching it.
+
+    Two ways to be shut. `## Companies` says nothing about it and the board or an
+    apply/ directory has a row, which is evidence a company was decided rather
+    than a record of what was decided, so there is no condition to ask. Or the
+    table does carry it, nothing fetches it, and this posting is not what would
+    bring it back.
+
+    The pair with company-criterion below is the one thing the merged table had
+    to keep: both gates ask the same question of the same cell, and which name
+    the digest prints is whether anyone is looking, because "we already decided
+    this" and "we are waiting and this is not it" read differently to a person.
+    """
+    name = norm(lead.company)
+    if name not in ctx["companies"]:
+        return name in ctx["decided"]
+    return name not in ctx["fetched"] and criterion_miss(lead, ctx)
 
 
 def fetch_all(catalog):
@@ -143,9 +206,10 @@ def sweep(audit=False):
     if not catalog:
         sys.exit("no machine channels in source/channels.md; add Endpoint cells first")
     seen = {} if audit else (json.loads(SEEN.read_text()) if SEEN.exists() else {})
-    watching = watch_criteria(catalog)
-    ctx = {"seen": seen, "decided": decided_names() - watched_names(catalog),
-           "watching": watching, "gates": load_gates(ROOT)}
+    channels = (ROOT / "source/channels.md").read_text()
+    ctx = {"seen": seen, "companies": company_criteria(channels, catalog),
+           "fetched": fetched_companies(channels), "decided": decided_names(),
+           "gates": load_gates(ROOT)}
     started = datetime.datetime.now()
     today = started.date().isoformat()
     rows, fresh, drops, errors, channels, this_run = [], [], {}, [], {}, set()
@@ -174,9 +238,13 @@ def sweep(audit=False):
         "decisions": list(DECISIONS), "channels": channels, "errors": errors,
         "counts": {d: len(v) for d, v in sorted(drops.items())} | {"kept": len(fresh)},
     })
-    hits = [(l, watching[norm(l.company)]) for l in fresh
-            if norm(l.company) in watching]
-    print_digest([l for l in fresh if norm(l.company) not in watching],
+    # A company with a written condition gets its own digest section, because a
+    # posting that met one is a company coming back rather than a new name. A
+    # blank condition is the common case and reads as an ordinary new lead.
+    conditions = ctx["companies"]
+    hits = [(l, conditions[norm(l.company)]) for l in fresh
+            if conditions.get(norm(l.company))]
+    print_digest([l for l in fresh if not conditions.get(norm(l.company))],
                  drops, errors, hits, run_dir)
 
 
@@ -198,7 +266,7 @@ def names(ctx, slug, text):
 
 STEPS = (
     ("seen-before", lambda l, ctx: l.key() in ctx["seen"]),
-    ("already-decided", lambda l, ctx: norm(l.company) in ctx["decided"]),
+    ("already-decided", decided_miss),
     ("wrong-metro", lambda l, ctx: not keeps(ctx, "wrong-metro", l.location)),
     ("title-class", lambda l, ctx: not keeps(ctx, "title-class", l.title)),
     ("ic-seat", lambda l, ctx: names(ctx, "ic-seat", l.title)),
@@ -208,7 +276,7 @@ STEPS = (
     ("foreign-remote",
         lambda l, ctx: names(ctx, "foreign-remote", l.title + " " + l.location)
         and not names(ctx, "in-us", l.title + " " + l.location)),
-    ("watch-criterion", watch_miss),
+    ("company-criterion", criterion_miss),
 )
 
 
@@ -243,15 +311,23 @@ def why_nothing_survived(drops):
                 "Change that list to change what the sweep keeps.")
     if reason == "seen-before":
         return (f"{line}, so an earlier run already showed them. "
-                "`python3 -m tools.sweep audit` replays every live posting.")
+                "`python3 -m tools.source.sweep audit` replays every live "
+                "posting.")
     if reason == "already-decided":
-        return f"{line}, so board.md already carries a row for each of them."
+        return (f"{line}, so each of those companies is closed: a row in "
+                "source/channels.md's `## Companies` table saying what would "
+                "reopen it, or a board row and an apply/ directory that stand "
+                "in for one until the table has them all.")
     return line + "."
 
 
 def print_digest(fresh, drops, errors, hits=(), run_dir=None):
+    # "Coming back" rather than the old "Watchlist hits", because the table
+    # merged: a company here is one somebody wrote a condition for, whether it
+    # was being watched for a seat or closed until one appeared, and a posting
+    # that met the condition is the same news either way.
     if hits:
-        print(f"## Watchlist hits ({len(hits)})\n")
+        print(f"## Coming back ({len(hits)})\n")
         for l, criterion in sorted(hits, key=lambda h: h[0].company.lower()):
             print(f"- **{l.company}**: {l.title} | {l.band or 'no band'} | "
                   f"{l.url or ''}")
@@ -313,19 +389,31 @@ def reconcile_board():
 
     A slug is not a display name: a company is boarded under the name a person
     types and its leads arrive under the ATS slug, numeric suffix and all, so
-    the catalog keys both ways. Match on one of the two and a company that has
-    sat on the board for weeks is reported unjudged, every single run.
+    the criteria map keys both ways. Match on one of the two and a company that
+    has sat on the board for weeks is reported unjudged, every single run.
     """
-    reconcile(RUNS, decided_names() | watched_names(load_catalog()))
+    channels = (ROOT / "source/channels.md").read_text()
+    reconcile(RUNS, decided_names()
+              | set(company_criteria(channels, load_catalog())))
 
 
-if __name__ == "__main__":
-    command = sys.argv[1] if len(sys.argv) > 1 else ""
+def main(argv):
+    command = argv[1] if len(argv) > 1 else ""
     if command == "probe":
-        probe(" ".join(sys.argv[2:]) or sys.exit("probe needs a company name"))
+        probe(" ".join(argv[2:]) or sys.exit("probe needs a company name"))
     elif command == "reconcile":
         reconcile_board()
     elif command == "grades":
         grades(RUNS)
-    else:
+    elif command == "rejudge":
+        rejudge.report(ROOT)
+    elif command in ("", "audit"):
         sweep(audit=command == "audit")
+    else:
+        # --help once ran a full sweep, twice: it refetched every channel,
+        # wrote a junk run directory and touched the seen-cache.
+        sys.exit(__doc__.strip())
+
+
+if __name__ == "__main__":
+    main(sys.argv)

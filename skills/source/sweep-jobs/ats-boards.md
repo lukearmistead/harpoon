@@ -57,5 +57,5 @@ unreadable are not:
   the numbers in cdn.getro.com asset URLs. Jobs carry compensation in
   cents and the canonical company-board URL.
 
-`tools/boards.py` implements all of these; reach for it before a raw
+`tools/source/boards.py` implements all of these; reach for it before a raw
 fetch, and record what you learn here when an endpoint moves.

@@ -14,7 +14,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from tools.contract import Lead
+from tools.core.contract import Lead
 
 UA = {"User-Agent": "Mozilla/5.0 (compatible; harpoon-sweep)"}
 BAND_RE = re.compile(r"\$[\d,]+(?:\.\d+)?[Kk]?\s*(?:-|–|—|to)\s*\$?[\d,]+(?:\.\d+)?[Kk]?")

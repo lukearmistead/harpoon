@@ -45,7 +45,7 @@ Knowing which claims hold is what makes the failures legible.
 
 ## Step 2: Count before concluding
 
-`python3 -m tools.sweep grades` is the standing report: rows and calls per
+`python3 -m tools.source.sweep grades` is the standing report: rows and calls per
 decision, confirmed against overturned, and every shape with its count. Beyond
 it, per run and by hand: how many decisions carry a recorded reason at all, how
 many are graded, and how many rows are one call wearing many hats.

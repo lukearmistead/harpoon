@@ -2,7 +2,7 @@
 
 import pytest
 
-from tools import citations
+from tools.core import citations
 
 
 def test_a_path_that_resolves_is_quiet_and_one_that_does_not_is_named(repo):

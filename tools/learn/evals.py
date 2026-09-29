@@ -13,11 +13,9 @@ import json
 import os
 import subprocess
 import sys
-from pathlib import Path
 
-from tools.contract import Lead, norm
-
-ROOT = Path(__file__).resolve().parent.parent
+from tools.core.contract import Lead, norm
+from tools.core.repo import ROOT
 
 ADJUDICATION = ("adjudication", "judge", "adjudicated", "shape", "fix", "note")
 SWEEP_COLUMNS = ("decision", *ADJUDICATION, "company", "title", "location",
@@ -32,7 +30,21 @@ SWEEP_COLUMNS = ("decision", *ADJUDICATION, "company", "title", "location",
 # the row later, so the first grader had to overwrite the evidence they were
 # grading. A sweep row needs no such column, because there the gate is the
 # reason; only judgment writes prose at decision time.
-JUDGMENT_COLUMNS = ("decision", "why", *ADJUDICATION, "company", "title", "url")
+#
+# "criterion" is the same reasoning in queryable values: the criteria bullet's
+# own opening words, then that bullet's label force. It names the bullet rather
+# than the gate because the criteria file labels bullets, so one gate spans
+# bullets of different force and a field naming the gate cannot say which one
+# decided the row. It is its own column rather than "note", which is occupied by
+# whoever grades the row later.
+#
+# A verdict resting on more than one rule names each of them, semicolon between
+# the rules and the comma inside each: criteria says two or three Strongs sink a
+# role together when the verdict says so, and a cell holding only the first of
+# them would make every honest multi-rule rejection look like the invalid
+# single-Strong kind.
+JUDGMENT_COLUMNS = ("decision", "why", "criterion", *ADJUDICATION,
+                    "company", "title", "url")
 
 
 def prior_adjudications(run_dir):
@@ -61,7 +73,12 @@ def prior_adjudications(run_dir):
 
 
 def revision():
-    """Which code produced this run, and whether that is even knowable.
+    """Which code and which rules produced this run, where that is knowable.
+
+    The criteria commit sits beside the code's, because a verdict is only
+    attributable once the version of the rules it was judged against is on
+    record: a reject written before a bullet moved and one written after are
+    different calls, and nothing else in a run directory says which is which.
 
     A run directory is evidence, and a sha on its own overstates it: a dirty
     tree means the commit does not describe what ran, and commits that never
@@ -89,9 +106,14 @@ def revision():
     commit = git("rev-parse", "--short", "HEAD")
     status = git("status", "--porcelain")
     unpushed = git("rev-list", "--count", "HEAD", "--not", "--remotes")
+    # `or None`, because a log of a path git has no commit for succeeds and
+    # prints nothing, and an empty string reads as a revision rather than as
+    # the absence of one.
+    criteria = git("log", "-1", "--format=%h", "--", "profile/criteria.md")
     return {"commit": commit,
             "dirty": None if status is None else status != "",
-            "unpushed": None if unpushed is None else int(unpushed)}
+            "unpushed": None if unpushed is None else int(unpushed),
+            "criteria_commit": criteria or None}
 
 
 def write_run(rows, run_dir, meta):

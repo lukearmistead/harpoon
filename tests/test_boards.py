@@ -5,8 +5,8 @@ Fixtures are minimal recorded shapes; no test touches the network.
 
 import pytest
 
-from tools import boards
-from tools.boards import ChannelError
+from tools.source import boards
+from tools.source.boards import ChannelError
 
 
 def fake_json(payload):

@@ -14,48 +14,63 @@ shorthand: say "nothing on their board is worth applying to", never "gate 4".
 
 ## The statuses
 
-Six, one per row.
+Five, one per row.
 
 - `applied`: sent, waiting to hear back. A row waiting on a person is still
   `applied`.
 - `interview`: talking to them.
 - `lead`: worth doing something about, and there is something to do.
-- `watch`: nobody is working it and nothing is waiting on the candidate. **This costs a
-  row in `source/channels.md` in the same turn**, because that row is the thing
-  doing the watching. Two kinds count, and both are real:
-  - a board the sweep can fetch, which is the normal case; or
-  - a careers page on the **Watched by hand** list, checked by the freshness
-    pass below. Slower, and only as good as the last run of the pass, but it is
-    a watcher. The worked example is a Webflow careers page with no job
-    board behind it, at a company the candidate named himself.
-
-  What does not count is a board that is machine-readable where nobody has
-  written the fetcher, like the Rippling and Workday rows. The fix there is the
-  fetcher, not a standing manual chore, so those rows are `lead` until it is
-  written. Hand-watching one instead is the candidate's call, never a default.
 - `rejected`: they declined the candidate.
 - `passed`: the candidate declined them.
 
-`scripts/check-watch-rows.sh` enforces the `watch` rule. Run it after any
-status change. Eight rows failed it on 2026-09-16, which is why it exists.
+**There is no `watch`, and that is the newest rule here.** A row is one company
+and one seat, so a company worth an eye on with no seat to go after has nothing
+to put in the role cell: it is a row in `source/channels.md`'s `## Companies`
+table instead,
+which is the thing that actually does the watching, and it arrives on the board
+the run a seat appears. Twenty-one rows moved that way on 2026-09-27, every one
+already watched by its own channel row.
+
+Two kinds of watching count there, and both are real: a board the sweep can
+fetch, which is the normal case, and a careers page checked by hand in the
+freshness pass below, which is slower and only as good as the last run of the
+pass. What does not count is a machine-readable board nobody has written the
+fetcher for, like the Rippling and Workday rows. The fix there is the fetcher,
+not a standing manual chore.
+
+`scripts/check-company-rows.sh` fails a `watch` row on the board, and fails a
+closed company with no row in that table. Run it after any status change.
 
 ## The table
 
-- One table, ordered `applied`, `interview`, `lead`, `watch`, `rejected`,
-  `passed`. Order inside a status carries no ranking, so never read the top of
-  the lead block as the best fit.
+- One table, ordered `applied`, `interview`, `lead`, `rejected`, `passed`.
+  Order inside a status carries no ranking, so never read the top of the lead
+  block as the best fit.
 - **No priority column, ever.** A hand-kept priority field is a second copy of
   Todo that nothing recomputes, so it rots: sixteen rows once sat in a
   `backlog` band on the same day the sweep found live jobs at eight of them.
   What to do next is `## Todo`, rebuilt from the rows.
-- What blocks a row goes in its `next` cell in prose, whatever the status: a
-  question owed, a person to reach, a decision that is the candidate's.
-- **Two or three sentences per `next` cell, and that is a ceiling.** The cell
-  names the block; `apply/<company>/company.md` carries the research,
-  the corrections and the reasoning, and it wins any disagreement. Write the
-  finding into the file first, then say in the row what it means for the next
-  move. One cell reached 4,500 characters because every turn appended to the
-  row instead of the file, which puts the page they actually read out of reach.
+- **A row is one company and one seat.** The `role` cell carries the seat's own
+  title as the posting spells it, never a paraphrase and never a title nothing
+  wrote down. A row whose role would be empty is not a row: it is an entry in
+  `source/channels.md`'s `## Companies` table.
+- **No prose in the table, and nothing below it.** What blocks a row goes in
+  `apply/<company>/company.md` under `## Next`, and that file wins any
+  disagreement. A company with no file yet gets the file written, not a bullet
+  at the bottom of the board.
+- **The table is the last thing on the page.** `scripts/check-board-shape.sh`
+  fails a commit that puts a heading under it. Four sections grew there and were
+  moved out on 2026-09-28: 29 companies whose only record was a bullet became 29
+  files in `apply/`, the override ledger went to `learn/lessons.md`, the people
+  went to `profile/network/assets.md`, and four unchecked names became rows in
+  `source/channels.md`. Every one of them was written for an agent to read, on
+  the one page the candidate reads. When there is no home for something, that is
+  the finding: name the file it belongs in and write it there.
+- That rule replaced a `next` column, and the measurement is why: it reached
+  66,584 characters, 87% of the table, with 98% of what it said written nowhere
+  else, so the column had become the record rather than a pointer to it. One cell
+  reached 4,500 characters because every turn appended to the row instead of the
+  file, which puts the page they actually read out of reach.
 - The date is the row's last touch, not its last move. It is not a staleness
   signal, because a sweep that re-finds a posting dates a row exactly like a
   meeting does.
@@ -87,7 +102,7 @@ Four blocks, in this order:
 
 **Urgent only, and that is a hard filter.** A line earns its
 place by being blocked on them, ready to send, or a live seat worth acting on
-now. Everything else lives in its row's `next` cell, which is where it came
+now. Everything else lives in that company's file, which is where it came
 from and where it is not lost. A Todo rebuilt to name every lead row is a
 second copy of the board: thirty-two leads became forty-one Todo items once,
 and they asked for the non-urgent ones taken back off the same day. Completeness
@@ -124,9 +139,10 @@ were settled, because the answer never travelled back.
   never an edit, and the correction fills in the `adjudication` column of the
   eval row that made the call.
 - A rejection also adjudicates the row that predicted it.
-- Moving a company off **Swept and rejected** needs a line saying what changed.
-  Usually it is `profile/criteria.md`, not the company.
-- Run `./scripts/check-citations.sh`, `./scripts/check-watch-rows.sh` and
+- Moving a company off `learn/rejections.md` needs a line saying what changed,
+  and its `## Companies` row in `source/channels.md` comes out the same turn.
+  Usually what changed is `profile/criteria.md`, not the company.
+- Run `./scripts/check-citations.sh`, `./scripts/check-company-rows.sh` and
   `./scripts/check-open-questions.sh`.
 
 ## The freshness pass
@@ -136,15 +152,16 @@ for a
 tidy-up, or before any sweep. Nothing runs it automatically.
 
 **Are the posted jobs still open?** Every `lead` row naming a specific posting
-is a claim that the job exists. Re-fetch each one through `tools.boards`, or
+is a claim that the job exists. Re-fetch each one through `tools.source.boards`, or
 the URL directly when there is no fetcher. A posting that has disappeared is
 news: say so on the row, dated, and either find its replacement on the same
-board or move the row to `watch` and catalog the board. Do not silently delete
-a link that stopped resolving.
+board or take the row off the board and give the company a row in
+`source/channels.md`'s `## Companies` table. Do not silently delete a link that stopped resolving.
 
-**What has changed at the watched companies?** A `watch` row is a delegation,
+**What has changed at the watched companies?** A fetched row in
+`source/channels.md` is a delegation,
 not a parking space, and the delegation is only as good as the last look. For
-each one, check the board row's own criterion in `source/channels.md` and then ask
+each one, check its own criterion in `source/channels.md` and then ask
 what else moved: a funding round, layoffs, a merger, an acquisition, a
 repositioning, a person the candidate knows arriving or leaving. A company that has
 repositioned is a different company, and its row is stale in a way no title
@@ -156,8 +173,8 @@ nobody had re-read.
 digest's location field or an HQ address. Count the postings actually in range
 and say the count. Three rows have been wrong this way.
 
-**Does every row still have a next action?** A `lead` with nothing to do is
-either a `watch`, if a channel can carry it, or it is finished and should be
+**Does every row still have a next action?** A `lead` with nothing to do comes
+off the board, either into `## Companies` if a channel can carry it, or as
 `passed` with the reason written down.
 
 Report what changed, what did not, and what you could not verify. "Checked and

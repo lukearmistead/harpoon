@@ -43,7 +43,7 @@ file to start.
 
 ## The first hour
 
-Five sentences, in this order. Claude runs each one end to end and interviews
+Six sentences, in this order. Claude runs each one end to end and interviews
 you when it needs something only you know.
 
 | Say this | What you get |
@@ -51,7 +51,8 @@ you when it needs something only you know.
 | "Here are my reviews and old resumes" (drop them in `profile/documents/` first) | It reads them, asks about the holes, and writes your fact base |
 | "Let's work out my criteria" | `profile/criteria.md`, what counts as a good job for you |
 | "Write my resume" | A master resume where every claim traces to the fact base |
-| "Here's my LinkedIn export" (unzip it into `profile/network/export/`) | The warm paths, so outreach starts from someone you already know |
+| "Here's my LinkedIn export" (unzip it into `profile/network/export/`) | Your network, read by the sweep and ranked so you can pick friends from it |
+| "Here are my friends" | `profile/network/friends.md`, struck from your network fifteen names at a time; it looks everything up |
 | "Find me some companies" | Boards and your network swept, filtered against your criteria, put on the board |
 
 Experience comes first because the criteria and the resume are both cut from
@@ -67,10 +68,17 @@ it, so you tell each story once. Lost your place? Ask "what should I do next?"
 | "Here are my notes from a call" | Filed in `profile/meetings/`, then reconciled against the board and the company file |
 | "That number is wrong, it was 40" | Checked once against the record, then your answer becomes the source of truth |
 | "Is this role on thesis?" | Judged against your criteria, and you get talked out of it if it is not |
+| "Where have my friends worked?" | Their histories into `profile/network/histories.md`, and every employer becomes a name for the sweep |
+| "Who do I know at Acme?" | Friends there, and people reached through a friend, filed under Paths in the company file |
 
-Two behaviors worth knowing. It does not commit without being asked. And it is
+Three behaviors worth knowing. It does not commit without being asked. It is
 instructed to push back when the record disagrees with you, not only when it
-disagrees with itself.
+disagrees with itself. And the two friends sentences read LinkedIn through
+your own Chrome, with the [Claude in Chrome](https://claude.ai/chrome)
+extension and linkedin.com allowed in its site settings: it shows you the
+list before any page loads and waits for your go, it never sends, connects
+or messages, and on a free LinkedIn account it stops the moment the monthly
+search limit shows. Without the extension, the export alone still works.
 
 ## How it stays honest
 
@@ -129,12 +137,18 @@ you decide whether to make it.
 ```
 board.md          the board and the only todo list
 profile/          yours: criteria, fact base, resume, voice, interviews,
-                  meeting notes, raw documents, LinkedIn export
+                  meeting notes, raw documents, LinkedIn export, friends
+                  and their histories
 source/           where jobs come from, and the words the sweep filters on
 apply/            one directory per company that advances
 learn/            one directory per sweep run, where calls get graded
-skills/           the nine procedures the copilot follows
-tools/            the code, with tests/ beside it
+skills/           the eleven procedures the copilot follows
+tools/            the code in five packages, with tests/ beside it
+  core/           the pieces every other package uses
+  profile/        the LinkedIn export, friends, histories, index files
+  source/         the sweep, the gates, the job boards, the company table
+  apply/          the company files and their index
+  learn/          the run logs and the grades taken off them
 scripts/          the checks, run by .githooks/pre-commit
 ```
 

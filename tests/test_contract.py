@@ -1,6 +1,6 @@
 import pytest
 
-from tools.contract import Posting
+from tools.core.contract import Posting
 
 
 def make(**overrides):

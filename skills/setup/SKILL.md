@@ -69,19 +69,20 @@ sentence and what it is for.
     longer exist anywhere. They were deleted at the source, so only an old
     instance still has them to remove by hand.
 11. **The indexes exist once there is anything to index.** `python3 -m
-    tools.notes` writes an `index.md` in `profile/meetings/`,
+    tools.profile.notes` writes an `index.md` in `profile/meetings/`,
     `profile/interviews/`, `profile/documents/` and `profile/network/`, and
     skips a directory with nothing in it yet. The template ships none of them,
     because they name real people and real documents; the rules that cite them
-    ship anyway, and `tools/citations.py` carries the list of every path the
-    template deliberately ships without.
+    ship anyway, and `tools/core/citations.py` carries the list of every path
+    the template deliberately ships without.
 
 ## Writing source/gates.md
 
-`profile/criteria.md` says what they want in sentences. `tools/sweep.py` can
-only match words against a posting, so `source/gates.md` is the same stops
-written as the words a posting actually uses. It is theirs, it is never
-exported, and until it exists the sweep stops and says so.
+`profile/criteria.md` says what they want in sentences.
+`tools/source/sweep.py` can only match words against a posting, so
+`source/gates.md` is the same stops written as the words a posting actually
+uses. It is theirs, it is never exported, and until it exists the sweep stops
+and says so.
 
 Read `profile/criteria.md` first and write what it already answers. Ask only
 for what it does not:
@@ -95,16 +96,16 @@ for what it does not:
 - **Which countries are not an option**, and which words mean the posting is
   open where they live anyway.
 
-The file's shape, which `tools/gates.py` is the only reader of: a `## <gate>`
-heading per list, prose under it in their words, and the words themselves in a
-fenced block separated by commas. The six headings are `wrong-metro`,
-`title-class`, `ic-seat`, `tooling-or-gtm`, `foreign-remote` and `in-us`, and
-every one of them has to be there even when its list is empty, which switches
-that gate off. A word matches anywhere it appears, so `europe` catches
-"European"; a word in quotes has to stand alone, which is for the short ones
-like `"ai"` and `"sf"`.
+The file's shape, which `tools/source/gates.py` is the only reader of: a
+`## <gate>` heading per list, prose under it in their words, and the words
+themselves in a fenced block separated by commas. The six headings are
+`wrong-metro`, `title-class`, `ic-seat`, `tooling-or-gtm`, `foreign-remote`
+and `in-us`, and every one of them has to be there even when its list is
+empty, which switches that gate off. A word matches anywhere it appears, so
+`europe` catches "European"; a word in quotes has to stand alone, which is
+for the short ones like `"ai"` and `"sf"`.
 
-Then run `python3 -m tools.sweep` and read the digest with them. A first
+Then run `python3 -m tools.source.sweep` and read the digest with them. A first
 sweep that returns nothing is the expected failure here, and the digest names
 the gate that ate everything. Fix the list and run it again before calling
 setup done.

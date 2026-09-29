@@ -1,6 +1,6 @@
 ---
 name: write-application
-description: Draft one application. Re-validates the seat, cuts a resume variant and a cover letter from the fact base and the settled answers, checks the draft against the barred claims, and moves the row on board.md. Use when the candidate says they want to apply somewhere, asks for a cover letter or a tailored resume, or names a specific posting to go after.
+description: Draft one application. Re-validates the seat, cuts a resume variant from the fact base and the settled answers, adds a cover letter when the form asks for one, checks the draft against the barred claims, and moves the row on board.md. Use when the candidate says they want to apply somewhere, asks for a cover letter or a tailored resume, or names a specific posting to go after.
 ---
 
 # Write application
@@ -64,13 +64,16 @@ positioning decision, so ask, and record it in `profile/experience.md` first.
 
 ## Step 5: The cover letter
 
-`profile/voice.md` holds the prose rules and sets the register. Three
-paragraphs beat four: the specific match, naming what the posting asks for
-and the thing in the corpus that answers it, close enough that the reader
-can check; why the domain is not new ground; and one real question from
-the company file's open questions, which shows the posting was read rather
-than matched. Quote the posting rather than paraphrasing. Do not open by
-explaining the company back to itself or close by restating paragraph one.
+Only when the form requires one or the candidate asks. Neither is true for
+most seats, so check the form before writing a word and skip this step and
+its file otherwise. `profile/voice.md` holds the prose rules and sets the
+register. Three paragraphs beat four: the specific match, naming what the
+posting asks for and the thing in the corpus that answers it, close enough
+that the reader can check; why the domain is not new ground; and one real
+question from the company file's open questions, which shows the posting was
+read rather than matched. Quote the posting rather than paraphrasing. Do not
+open by explaining the company back to itself or close by restating
+paragraph one.
 
 ## Step 6: The form questions
 
@@ -92,8 +95,8 @@ have gone to another company. If yes, the first paragraph is wrong.
 
 ## Finish
 
-- Write `apply/<slug>/resume.md` and
-  `apply/<slug>/cover-letter.md`. Each ends with a `<!-- cut -->`
+- Write `apply/<slug>/resume.md`, and `apply/<slug>/cover-letter.md`
+  only if step 5 wrote a letter. Each ends with a `<!-- cut -->`
   marker, then the seat metadata and a line naming what was read to write
   it; the renderer drops everything after the marker.
 - Append a dated entry to the company file's log: what was drafted, the

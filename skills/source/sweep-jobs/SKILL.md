@@ -25,7 +25,7 @@ shape and keep going.
 
 **Machine lane first, and it is the default.** Run:
 
-    python3 -m tools.sweep
+    python3 -m tools.source.sweep
 
 It fetches every cataloged endpoint in `source/channels.md` concurrently,
 drops what `board.md` and `apply/` already decided, what earlier
@@ -40,14 +40,14 @@ gate order, the per-channel counts, the fetch errors and the revision that
 produced them: the commit, whether the tree was dirty, and how many commits
 had not been pushed. A dirty tree means the commit does not describe the code
 that ran, so a grade taken off that run is weaker than it looks.
-`python3 -m tools.sweep audit` reruns every gate against all live
+`python3 -m tools.source.sweep audit` reruns every gate against all live
 postings, ignoring the seen-cache.
 
 Nothing in the code writes `judgment.csv`, because the judgment pass is you.
 Write it in the same directory with the columns
-`tools/evals.py` names in `JUDGMENT_COLUMNS`, one row per posting:
+`tools/learn/evals.py` names in `JUDGMENT_COLUMNS`, one row per posting:
 
-    decision,why,adjudication,judge,adjudicated,shape,fix,note,company,title,url
+    decision,why,criterion,adjudication,judge,adjudicated,shape,fix,note,company,title,url
 
 `decision` is `board`, `near-miss` or `reject`, and `why` is your reasoning,
 written now. **`note` is not yours: it belongs to whoever grades the row
@@ -62,6 +62,20 @@ Say which test decided it and whether that test is a stop, a real objection or
 a tiebreaker, because the criteria file ranks them and the whole file is the
 standard here, not your read of the posting.
 
+**`criterion` is that same answer in two values, comma separated: the opening
+words of the criteria bullet, then its label, `Firm`, `Strong` or `Weak`.** So
+`$200K floor, Firm` or `at or above my level of staff, Strong`. Quote the bullet
+rather than the gate, because one gate spans bullets of different force and the
+gate name is already in `why`. Every row with a `decision` fills it, and
+`scripts/check-judgment-criterion.sh` fails the commit when one does not.
+
+**A verdict resting on more than one rule names each of them, semicolon between
+the rules.** So `at or above my level of staff, Strong; the job is central to the
+business model, Strong`. `profile/criteria.md` says a Strong never fails a role
+alone, so a rejection naming one Strong and nothing else is invalid by that
+file's own labels, and `python3 -m tools.source.sweep rejudge` lists every one of them.
+Name all of the misses or find the Firm one.
+
 **A lead that reached you only because a channel criterion was too loose is not
 a rejected seat.** Say so once, fix `source/channels.md`, and do not write a verdict
 per posting: nineteen identical rows in one run were a single call about
@@ -69,7 +83,7 @@ sourcing, and they drown the calls about seats.
 
 Invent a header here and `reconcile` reads nothing and reports nothing wrong.
 **Then run
-`python3 -m tools.sweep reconcile`**, which names every `kept` lead with
+`python3 -m tools.source.sweep reconcile`**, which names every `kept` lead with
 no verdict and no board row: an unjudged survivor is not pending, it is
 gone, because the seen-cache remembers it and the next run drops it at
 `seen-before`.
@@ -86,11 +100,15 @@ with no Endpoint), split by source, never by topic, no overlap:
 
 - **Network** is the highest-yield channel and the only one nobody else
   can run: former colleagues come from `find-former-colleagues.py` in this
-  directory, not a fresh derivation.
+  directory, not a fresh derivation. The network yields two company lists:
+  `profile/network/histories.md`, written by gather-histories, is the
+  friends-deep one, every employer of every friend, and
+  `find-network-companies.py` remains the whole-network one, where every
+  connection works today.
 - **Recent raises** and verifying a named service need web search. The
   contract shrinks to company names, one line on what each does, and which
   source produced it. **Never board contents**: resolve each name with
-  `python3 -m tools.sweep probe <company>`, which finds the ATS board
+  `python3 -m tools.source.sweep probe <company>`, which finds the ATS board
   and prints its open seats. A name that survives judgment gets its
   endpoint recorded in `source/channels.md` so it is machine-lane forever.
 
@@ -157,18 +175,25 @@ from trusting a summary over a source. Lessons that cost a day each:
 - **A short result is a false negative.** Small for the headcount? Fetch
   the board again.
 - **Name the seat category that keeps failing the same gate.** When one
-  kills its third posting, write the pattern in `source/channels.md` so it gets
-  rejected in one line instead of researched again.
+  kills its third posting, write the pattern in `learn/lessons.md`, which is the
+  one place a lesson lives, so it gets rejected in one line instead of
+  researched again. What changes where the sweep looks is a row or a line in
+  `source/channels.md` in the same turn, and that file carries no lessons.
 
 ## Step 3: Put it on the board
 
-- Survivors go on `board.md`: status, next action naming a person or a
-  posting, the board URL, any warm connection by name and role. A survivor
-  with a next action is a `lead`; one worth keeping with nothing to do is a
-  `watch`, which means adding its board to the `source/channels.md` watchlist in
-  the same turn, because that row is what does the watching.
-- **Rejections go under Swept and rejected** as one dated line in the
-  verdict grammar `board.md` opens with. Failing a stop, the company's
+- Survivors with a seat go on `board.md` as a `lead`: company, the seat's own
+  title in the role cell, status, date, and the connection there by name and
+  role if there is one.
+- A survivor worth keeping with no seat does not go on the board at all. It
+  gets a row in `source/channels.md`'s `## Companies` table instead, which is the
+  thing that does the watching, and it reaches the board the run a seat
+  appears. A board row is one company and one seat, so a company with no seat
+  has nothing to put in it.
+- **Rejections go in `learn/rejections.md`** as one dated line in the
+  verdict grammar `board.md` opens with, and the company also gets a row in
+  `source/channels.md`'s `## Companies` table saying what would bring it back,
+  which is the row the already-decided gate reads. Failing a stop, the company's
   health or the seat is a fact about today, so add what would bring it back;
   failing the expertise or operator test is about the thesis and does not
   come back. Verdicts are append-only: a
@@ -182,7 +207,7 @@ from trusting a summary over a source. Lessons that cost a day each:
 - **Nothing is on the board until it is on `board.md`.** A verdict that
   lives only in `judgment.csv` does not stop the row resurfacing, because
   `decided_names` reads the board.
-- Run `python3 -m tools.sweep reconcile`, then
+- Run `python3 -m tools.source.sweep reconcile`, then
   `./scripts/check-citations.sh`. Nothing runs either for you.
 
 ## Step 4: Stop

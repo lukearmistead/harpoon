@@ -1,13 +1,13 @@
 """Questions only the candidate can answer, checked against the page he reads.
 
-    python3 -m tools.questions
+    python3 -m tools.profile.questions
 
 `[ask: Tenure]` marks such a question wherever it lives, and this asserts each
 one is also a line in board.md's Todo, so the fact base cannot accumulate a
 private backlog he never sees. It went 20 to 3 that way once.
 
 The key is the word after the marker. Square brackets and no parentheses, so
-tools/citations.py does not read it as a markdown link, and because the prose
+tools/core/citations.py does not read it as a markdown link, and because the prose
 around it is too long and too fluid to match on. An untagged open question is
 not a failure: tagging is a per-entry decision, and a check that fires on
 everything gets ignored.
@@ -16,13 +16,13 @@ everything gets ignored.
 import re
 import sys
 
-from tools import repo
+from tools.core import repo
 
 ROOT = repo.ROOT
 BOARD = "board.md"
 ASK = re.compile(r"\[ask: *([^\]]+)\]")
 # A placeholder names the shape the marker takes and is not a real question,
-# the same exemption tools/citations.py makes for `YYYY-MM-DD-topic.md`.
+# the same exemption tools/core/citations.py makes for `YYYY-MM-DD-topic.md`.
 PLACEHOLDER = re.compile(r"<[^>]*>")
 
 

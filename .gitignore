@@ -16,3 +16,8 @@ profile/*.pdf
 __pycache__/
 .pytest_cache/
 .sweep-seen.json
+
+# Worktrees are checkouts of this same repo, created per branch under
+# .claude/worktrees/. Committing one would commit a copy of the repo into
+# itself; git already tracks them through .git/worktrees.
+.claude/worktrees/

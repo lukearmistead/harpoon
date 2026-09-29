@@ -1,7 +1,7 @@
 """The words each sweep gate reads, from source/gates.md rather than from Python.
 
-The funnel stays in tools/sweep.py, because the order of the gates and what
-each one reads are the engine. The words are the candidate's search, and a
+The funnel stays in tools/source/sweep.py, because the order of the gates and
+what each one reads are the engine. The words are the candidate's search, and a
 search compiled into the engine is one nobody can see or change: a template
 shipping one person's metro and title class hands everyone else an empty
 digest that reads like a quiet market.

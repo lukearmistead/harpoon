@@ -2,7 +2,7 @@
 
 import pytest
 
-from tools import questions
+from tools.profile import questions
 
 
 def test_a_tagged_question_must_reach_the_board(repo):

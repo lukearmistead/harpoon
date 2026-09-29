@@ -1,9 +1,9 @@
 """Rank the companies where LinkedIn connections currently work.
 
 Connections.csv stores each connection's current employer, so its Company
-column is a standing list of companies where a warm path already exists.
-Job boards are indexed by investor or by ATS and produce no warm paths at
-all; this reads the network, which produces nothing else. It is the other
+column is a standing list of companies where a connection already works.
+Job boards are indexed by investor or by ATS and name nobody the candidate
+knows; this reads the network, which produces nothing else. It is the other
 direction through the file find-former-colleagues.py reads.
 
 Run from the repo root:
@@ -12,7 +12,7 @@ Run from the repo root:
 
 Companies board.md has already decided are dropped, so the report is what
 is new. Review it by hand and resolve the ones that look on-thesis with
-`python3 -m tools.sweep probe <company>`, which finds the ATS board and
+`python3 -m tools.source.sweep probe <company>`, which finds the ATS board and
 prints its open seats.
 
 Nothing here is a lead. A connection at a company says a door exists, not
@@ -26,7 +26,8 @@ import sys
 from collections import defaultdict
 
 sys.path.insert(0, ".")  # this runs from the repo root, where tools/ sits
-from tools.sweep import decided_names, norm  # noqa: E402
+from tools.core.contract import norm  # noqa: E402
+from tools.source.sweep import decided_names  # noqa: E402
 
 CONNECTIONS_CSV = "profile/network/export/Connections.csv"
 

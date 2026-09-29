@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from tools import gates
+from tools.source import gates
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures/gates.md"
 

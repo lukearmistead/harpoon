@@ -18,7 +18,8 @@ alameda, walnut creek, fremont, hayward
 
 ```
 machine learning, "ml", "ai", data scien, applied scien, research scien,
-data engineer, deep learning, "nlp", "llm", forward deployed, decision scien
+data engineer, deep learning, "nlp", "llm", forward deployed,
+forward-deployed, decision scien
 ```
 
 ## ic-seat
@@ -32,7 +33,7 @@ internship, new grad
 
 ```
 platform, infrastructure, "infra", devops, "sre", reliability,
-solutions architect, account executive, "sales", "gtm", go-to-market,
+solutions architect, solutions engineer, account executive, "sales", "gtm", go-to-market,
 support engineer, support specialist, advocate, security, appsec, "soc",
 recruiter, marketing, designer, "counsel", evaluator, partnerships, enablement
 ```
@@ -47,7 +48,8 @@ poland, romania, belgium, netherlands, amsterdam, czech, prague, hungary,
 greece, bulgaria, turkey, ukraine, israel, tel aviv, "india", bengaluru,
 singapore, japan, tokyo, korea, taiwan, china, shenzhen, hong kong, vietnam,
 thailand, indonesia, philippines, brazil, argentina, chile, colombia,
-costa rica, honduras, latin america, "latam", australia, new zealand, canada,
+costa rica, honduras, mexico, peru, uruguay, ecuador, guatemala,
+panama, latin america, "latam", australia, new zealand, canada,
 toronto, vancouver, south africa, nigeria, kenya, egypt, "uae", dubai
 ```
 

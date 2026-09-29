@@ -2,11 +2,16 @@
 
 import csv
 import json
+import os
 import re
+import subprocess
 from pathlib import Path
 
-from tools import evals, sweep, watch
-from tools.contract import Lead
+import pytest
+
+from tools.core.contract import Lead
+from tools.learn import evals
+from tools.source import sweep, watch
 
 
 def latest_run(tmp_path):
@@ -30,6 +35,20 @@ def seed_run(tmp_path, name, rows):
     return run
 
 
+def seed_repo(root):
+    """A repo with a history that has never held profile/criteria.md.
+
+    GIT_ variables are dropped here for the reason evals.revision drops them:
+    under the pre-commit hook an ambient GIT_DIR would aim this at the repo
+    being committed.
+    """
+    env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    for args in (("init", "-q"),
+                 ("-c", "user.name=t", "-c", "user.email=t@example.com",
+                  "commit", "-q", "--allow-empty", "-m", "seed")):
+        subprocess.run(("git", "-C", str(root), *args), check=True, env=env)
+
+
 def lead(**kw):
     base = dict(company="Acme Health", title="Staff ML Engineer",
                 location="San Francisco", band=None,
@@ -40,7 +59,7 @@ def lead(**kw):
 def test_catalog_reads_endpoint_cells(tmp_path, monkeypatch):
     (tmp_path / "source").mkdir()
     (tmp_path / "source/channels.md").write_text(
-        "| Channel | Endpoint | Works from |\n|---|---|---|\n"
+        "## Catalog\n\n| Channel | Endpoint | Works from |\n|---|---|---|\n"
         "| HN hiring | `hn:whoishiring` | monthly thread |\n"
         "| GV | `consider:jobs.gv.com:gv` | fund board |\n"
         "| Network | | not a machine channel |\n")
@@ -50,16 +69,16 @@ def test_catalog_reads_endpoint_cells(tmp_path, monkeypatch):
 
 
 def test_catalog_reads_the_watching_column(tmp_path, monkeypatch):
-    """A watchlist row has four cells and the third is its criterion; a
-    catalog row has three and its third cell is prose."""
+    """A company row has four cells and the third is its condition; a catalog
+    row has three and its third cell is prose."""
     (tmp_path / "source").mkdir()
     (tmp_path / "source/channels.md").write_text(
+        "## Companies\n\n"
         "| Beacon AI | `ashby:beaconai` | band > 260 | demoted on peer band |\n"
-        "| HN hiring | `hn` | monthly thread |\n")
+        "\n## Catalog\n\n| HN hiring | `hn` | monthly thread |\n")
     monkeypatch.setattr(sweep, "ROOT", tmp_path)
-    rows = sweep.load_catalog()
-    assert rows[0].watching == "band > 260"
-    assert rows[1].watching == ""
+    watching = {ch.name: ch.watching for ch in sweep.load_catalog()}
+    assert watching == {"Beacon AI": "band > 260", "HN hiring": ""}
 
 
 def test_alternation_survives_the_cell_split(tmp_path, monkeypatch):
@@ -67,6 +86,7 @@ def test_alternation_survives_the_cell_split(tmp_path, monkeypatch):
     escapes it and the parse has to put it back."""
     (tmp_path / "source").mkdir()
     (tmp_path / "source/channels.md").write_text(
+        "## Companies\n\n"
         "| Kestrel | `greenhouse:flykestrel` | title ~ staff\\|principal | 350 postings |\n")
     monkeypatch.setattr(sweep, "ROOT", tmp_path)
     assert sweep.load_catalog()[0].watching == "title ~ staff|principal"
@@ -94,6 +114,10 @@ GATES = (Path(__file__).resolve().parent / "fixtures/gates.md").read_text()
 def run_sweep(tmp_path, monkeypatch, capsys, leads, board="", seen=None,
               channels="| HN | `hn` | |\n", error=None, gates=GATES):
     (tmp_path / "source").mkdir(exist_ok=True)
+    # The real file reads its catalog from under a heading, so a fixture that
+    # gives bare rows is giving the catalog.
+    if "## " not in channels:
+        channels = "## Catalog\n\n" + channels
     (tmp_path / "source/channels.md").write_text(channels)
     (tmp_path / "source/gates.md").write_text(gates)
     (tmp_path / "board.md").write_text(board)
@@ -112,6 +136,18 @@ def test_fresh_lead_lands_in_digest(tmp_path, monkeypatch, capsys):
     out = run_sweep(tmp_path, monkeypatch, capsys, [lead()])
     assert "## New leads (1)" in out
     assert "Acme Health" in out
+
+
+def test_a_linked_board_row_still_gates_its_company(tmp_path, monkeypatch, capsys):
+    """A company's cell becomes a markdown link the moment it has a file, and
+    the whole cell used to be normalized, to `acmehealthapplyacmehealthcompanymd`,
+    which no posting can match. It gated anyway, because the `apply/` directory
+    beside it supplied the clean name, so the board half of that read was doing
+    nothing. Here the directory is absent and only the row can gate."""
+    out = run_sweep(tmp_path, monkeypatch, capsys, [lead()],
+                    board="| [Acme Health](apply/acme-health/company.md) | lead |")
+    assert "## New leads (0)" in out
+    assert "1 already-decided: Acme Health" in out
 
 
 def test_already_decided_is_dropped_and_named(tmp_path, monkeypatch, capsys):
@@ -184,7 +220,7 @@ def test_watched_company_survives_already_decided(tmp_path, monkeypatch, capsys)
     out = run_sweep(tmp_path, monkeypatch, capsys,
                     [lead(company="acmehealth")],
                     board="| Acme Health | lead | watch | ...",
-                    channels="| Acme Health | `greenhouse:acmehealth` | watchlist |\n")
+                    channels="## Companies\n\n| Acme Health | `greenhouse:acmehealth` | | fetched |\n")
     assert "## New leads (1)" in out
 
 
@@ -192,7 +228,7 @@ def test_watching_one_company_does_not_unwatch_the_rest(tmp_path, monkeypatch, c
     out = run_sweep(tmp_path, monkeypatch, capsys,
                     [lead(company="Other Co", url="https://x.com/9")],
                     board="| Other Co | lead | now | ...",
-                    channels="| Acme Health | `greenhouse:acmehealth` | watchlist |\n")
+                    channels="## Companies\n\n| Acme Health | `greenhouse:acmehealth` | | fetched |\n")
     assert "1 already-decided: Other Co" in out
 
 
@@ -330,7 +366,7 @@ def test_reconcile_knows_a_slug_from_a_display_name(tmp_path, monkeypatch, capsy
     on one of the two reports a boarded company as unjudged, every run."""
     run_sweep(tmp_path, monkeypatch, capsys, [lead(company="northwind66")],
               board="| Northwind | lead | x |\n",
-              channels="| Northwind | `greenhouse:northwind66` | |\n")
+              channels="## Companies\n\n| Northwind | `greenhouse:northwind66` | | |\n")
     assert [r["decision"] for r in sweep_rows(tmp_path)] == ["kept"]
     capsys.readouterr()
     sweep.reconcile_board()
@@ -351,7 +387,8 @@ def test_a_url_less_lead_is_not_judged_by_a_url_less_verdict(tmp_path, monkeypat
     assert "Acme Health" in capsys.readouterr().out
 
 
-WATCH_BEACON = "| Beacon AI | `ashby:beaconai` | band > 260 | watchlist |\n"
+WATCH_BEACON = ("## Companies\n\n"
+                "| Beacon AI | `ashby:beaconai` | band > 260 | fetched |\n")
 
 
 def test_watched_posting_below_the_floor_drops(tmp_path, monkeypatch, capsys):
@@ -359,14 +396,14 @@ def test_watched_posting_below_the_floor_drops(tmp_path, monkeypatch, capsys):
                     [lead(company="Beacon AI", band="$200K – $260K")],
                     channels=WATCH_BEACON)
     assert "## New leads (0)" in out
-    assert "1 watch-criterion" in out
+    assert "1 company-criterion" in out
 
 
 def test_watched_posting_above_the_floor_is_a_hit(tmp_path, monkeypatch, capsys):
     out = run_sweep(tmp_path, monkeypatch, capsys,
                     [lead(company="Beacon AI", band="$280K – $340K")],
                     channels=WATCH_BEACON)
-    assert "## Watchlist hits (1)" in out
+    assert "## Coming back (1)" in out
     assert "band > 260" in out
     assert "## New leads (0)" in out
 
@@ -377,15 +414,15 @@ def test_a_band_topping_higher_but_starting_lower_still_misses(tmp_path, monkeyp
     out = run_sweep(tmp_path, monkeypatch, capsys,
                     [lead(company="Beacon AI", band="$240K – $265K")],
                     channels=WATCH_BEACON)
-    assert "1 watch-criterion" in out
-    assert "Watchlist hits" not in out
+    assert "1 company-criterion" in out
+    assert "Coming back" not in out
 
 
 def test_unbanded_posting_passes_a_band_criterion(tmp_path, monkeypatch, capsys):
     """An unposted band is an unknown, not a known miss."""
     out = run_sweep(tmp_path, monkeypatch, capsys,
                     [lead(company="Beacon AI", band=None)], channels=WATCH_BEACON)
-    assert "## Watchlist hits (1)" in out
+    assert "## Coming back (1)" in out
 
 
 def test_title_criterion_matches_and_misses(tmp_path, monkeypatch, capsys):
@@ -393,10 +430,10 @@ def test_title_criterion_matches_and_misses(tmp_path, monkeypatch, capsys):
                     [lead(company="Kestrel", title="Staff Data Scientist"),
                      lead(company="Kestrel", title="Senior Data Scientist",
                           url="https://x.com/8")],
-                    channels="| Kestrel | `greenhouse:flykestrel` | "
+                    channels="## Companies\n\n| Kestrel | `greenhouse:flykestrel` | "
                              "title ~ staff\\|principal | watchlist |\n")
-    assert "## Watchlist hits (1)" in out
-    assert "1 watch-criterion" in out
+    assert "## Coming back (1)" in out
+    assert "1 company-criterion" in out
 
 
 def test_criterion_is_found_by_display_name_when_the_slug_differs(tmp_path, monkeypatch, capsys):
@@ -404,24 +441,107 @@ def test_criterion_is_found_by_display_name_when_the_slug_differs(tmp_path, monk
     one of the two would leave the criterion silently unchecked."""
     out = run_sweep(tmp_path, monkeypatch, capsys,
                     [lead(company="Kestrel", title="Senior Data Scientist")],
-                    channels="| Kestrel | `greenhouse:flykestrel` | "
+                    channels="## Companies\n\n| Kestrel | `greenhouse:flykestrel` | "
                              "title ~ staff\\|principal | watchlist |\n")
-    assert "1 watch-criterion" in out
+    assert "1 company-criterion" in out
 
 
 def test_empty_criterion_watches_everything(tmp_path, monkeypatch, capsys):
     out = run_sweep(tmp_path, monkeypatch, capsys,
                     [lead(company="Dovetail", band="$90K – $100K")],
-                    channels="| Dovetail | `greenhouse:dovetail` | | 17 postings |\n")
+                    channels="## Companies\n\n| Dovetail | `greenhouse:dovetail` | | 17 postings |\n")
     assert "## New leads (1)" in out
-    assert "Watchlist hits" not in out
+    assert "Coming back" not in out
 
 
 def test_unwatched_company_ignores_the_new_step(tmp_path, monkeypatch, capsys):
     out = run_sweep(tmp_path, monkeypatch, capsys,
                     [lead(band="$90K – $100K")], channels=WATCH_BEACON)
     assert "## New leads (1)" in out
-    assert "watch-criterion" not in out
+    assert "company-criterion" not in out
+
+
+def with_company_table(*rows):
+    """A catalog the sweep can fetch, and the `## Companies` table beside it."""
+    return ("## Catalog\n\n| HN | `hn` | |\n\n## Companies\n\n"
+            "| Company | Endpoint | A posting matters when | Notes |\n"
+            "|---|---|---|---|\n" + "".join(rows))
+
+
+def test_a_board_named_as_not_worth_fetching_is_not_fetched(tmp_path, monkeypatch):
+    """That section names endpoints on purpose, to say nobody should walk them
+    again, so a reader of every table in the file would catalog the twelve fund
+    boards the section exists to rule out."""
+    (tmp_path / "source").mkdir()
+    (tmp_path / "source/channels.md").write_text(
+        "## Catalog\n\n| HN | `hn` | |\n"
+        "\n## Not worth fetching\n\n| F-Prime | `getro:258` | measured worse |\n")
+    monkeypatch.setattr(sweep, "ROOT", tmp_path)
+    assert [ch.name for ch in sweep.load_catalog()] == ["HN"]
+
+
+def test_the_closed_table_is_not_a_channel(tmp_path, monkeypatch):
+    """Its second cell holds a comeback condition, and a condition never names
+    a fetcher, which is what keeps the catalog out of the new table."""
+    (tmp_path / "source").mkdir()
+    (tmp_path / "source/channels.md").write_text(
+        with_company_table("| Omni | | `band > 200` | no Python seat |\n"))
+    monkeypatch.setattr(sweep, "ROOT", tmp_path)
+    assert [ch.name for ch in sweep.load_catalog()] == ["HN"]
+
+
+def test_a_company_the_closed_table_does_not_name_is_not_closed(
+        tmp_path, monkeypatch, capsys):
+    out = run_sweep(tmp_path, monkeypatch, capsys, [lead()],
+                    channels=with_company_table("| Vercel | | `never` | no operator |\n"))
+    assert "## New leads (1)" in out
+
+
+def test_never_closes_a_company_on_any_posting(tmp_path, monkeypatch, capsys):
+    out = run_sweep(tmp_path, monkeypatch, capsys, [lead(band="$400K – $500K")],
+                    channels=with_company_table(
+                        "| Acme Health | | `never` | no operator whose work he "
+                        "would be measuring |\n"))
+    assert "1 already-decided: Acme Health" in out
+
+
+def test_never_survives_its_code_font_and_its_spelling(tmp_path, monkeypatch, capsys):
+    """Three links in one chain: tables.rows takes the backticks off the code
+    font the schema writes, load_closed strips the spaces that were inside
+    them, and it lowercases what a person typed as a sentence would. Any one of
+    them missing compares unequal to `never` and reopens the company."""
+    out = run_sweep(tmp_path, monkeypatch, capsys,
+                    [lead(), lead(company="B Co", url="https://x.com/2"),
+                     lead(company="C Co", url="https://x.com/3")],
+                    channels=with_company_table(
+                        "| Acme Health | | `never` | thesis |\n",
+                        "| B Co | | ` never ` | thesis |\n",
+                        "| C Co | | Never | thesis |\n"))
+    assert "## New leads (0)" in out
+    assert "3 already-decided" in out
+
+
+def test_a_closed_company_comes_back_on_the_posting_that_meets_its_condition(
+        tmp_path, monkeypatch, capsys):
+    out = run_sweep(tmp_path, monkeypatch, capsys,
+                    [lead(band="$300K – $350K"),
+                     lead(band="$150K – $190K", url="https://x.com/2")],
+                    channels=with_company_table(
+                        "| Acme Health | | `band > 200` | below the floor |\n"))
+    assert "## Coming back (1)" in out
+    assert "1 already-decided: Acme Health" in out
+
+
+def test_an_empty_condition_reopens_on_any_posting_and_beats_the_board_row(
+        tmp_path, monkeypatch, capsys):
+    """The row in the table is the decision; the board row only stands in for
+    one until every closed company has been given a row."""
+    out = run_sweep(tmp_path, monkeypatch, capsys, [lead(band="$90K – $100K")],
+                    board="| Acme Health | passed | ... |",
+                    channels=with_company_table(
+                        "| Acme Health | | | its whole board dies at "
+                        "title-class, so show anything better |\n"))
+    assert "## New leads (1)" in out
 
 
 def test_run_json_stamps_the_revision(tmp_path, monkeypatch, capsys):
@@ -433,10 +553,35 @@ def test_run_json_stamps_the_revision(tmp_path, monkeypatch, capsys):
     assert isinstance(rev["unpushed"], int)
 
 
+def test_run_json_stamps_the_criteria_revision(tmp_path, monkeypatch, capsys):
+    """Which rules judged the run, so a verdict written before a bullet moved
+    can be told from one written after."""
+    run_sweep(tmp_path, monkeypatch, capsys, [lead()])
+    rev = json.loads((latest_run(tmp_path) / "run.json").read_text())["revision"]
+    assert re.fullmatch(r"[0-9a-f]{7,40}", rev["criteria_commit"])
+
+
+def test_the_criteria_revision_is_null_where_that_file_has_no_commit(tmp_path,
+                                                                    monkeypatch):
+    """git logs a path it has never committed successfully and prints nothing,
+    and an empty string would read as a revision rather than the lack of one."""
+    seed_repo(tmp_path)
+    monkeypatch.setattr(evals, "ROOT", tmp_path)
+    assert evals.revision()["commit"] is not None
+    assert evals.revision()["criteria_commit"] is None
+
+
+def test_a_judgment_row_has_a_column_for_the_criterion():
+    """The reason a verdict can be queried at all, so the judgment pass has to
+    be told to write it: a column nobody names is a column nobody fills."""
+    assert "criterion" in evals.JUDGMENT_COLUMNS
+
+
 def test_revision_survives_a_repo_that_is_not_one(tmp_path, monkeypatch):
     """The template's fresh clone has no git history and must not crash a run."""
     monkeypatch.setattr(evals, "ROOT", tmp_path)
-    assert evals.revision() == {"commit": None, "dirty": None, "unpushed": None}
+    assert evals.revision() == {"commit": None, "dirty": None,
+                                "unpushed": None, "criteria_commit": None}
 
 
 def test_revision_reads_the_engine_not_the_working_directory(tmp_path, monkeypatch):
@@ -454,7 +599,8 @@ def test_revision_ignores_an_ambient_git_dir(tmp_path, monkeypatch):
     """
     monkeypatch.setenv("GIT_DIR", str(Path(".git").resolve()))
     monkeypatch.setattr(evals, "ROOT", tmp_path)
-    assert evals.revision() == {"commit": None, "dirty": None, "unpushed": None}
+    assert evals.revision() == {"commit": None, "dirty": None,
+                                "unpushed": None, "criteria_commit": None}
 
 
 METRO_LIST = ('san francisco, "sf", bay area, remote, berkeley, oakland, '
@@ -505,3 +651,10 @@ def test_a_run_with_leads_explains_nothing(tmp_path, monkeypatch, capsys):
                     [lead(), lead(company="B Co", location="New York, NY",
                                   url="https://x.com/2")])
     assert "Nothing survived" not in out
+
+
+def test_an_unknown_argument_prints_usage_instead_of_sweeping(monkeypatch):
+    monkeypatch.setattr(sweep, "sweep", lambda audit=False: pytest.fail("swept"))
+    with pytest.raises(SystemExit) as stop:
+        sweep.main(["sweep", "--help"])
+    assert "python3 -m tools.source.sweep" in str(stop.value)

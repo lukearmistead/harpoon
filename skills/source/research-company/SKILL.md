@@ -1,6 +1,6 @@
 ---
 name: research-company
-description: Research one company that has advanced off the board and write its company.md in apply/. Covers business model, funding and health, the data org, the seat, moat, who is on the other side of the model, and warm paths, ending in a verdict and a next action. Use when the candidate adds a company to the board, says a company advances, or asks for a deeper look at a single name.
+description: Research one company that has advanced off the board and write its company.md in apply/. Covers business model, funding and health, the data org, the seat, moat, who is on the other side of the model, and paths, ending in a verdict and a next action. Use when the candidate adds a company to the board, says a company advances, asks for a deeper look at a single name, or asks "who do I know at <company>?", which runs the Paths step alone.
 ---
 
 # Research a company
@@ -79,8 +79,11 @@ seat.
 
 **Who is on the other side of the model**, tested the way `profile/criteria.md`
 frames it. Whose work does the model change, does it get better for them or
-only cheaper, who buys, and what number justifies the purchase. This is the
-section worth writing at length.
+only cheaper, who buys, and what number justifies the purchase. When that
+number is headcount, ask who measures the work the model absorbed: a company
+claiming labor savings with nobody checking whether the work went away has
+answered the cheaper half and not the better one. This is the section worth
+writing at length.
 
 **Fit against the corpus.** Name the specific projects that map to the seat's
 problem. Start from `profile/resume.md`, whose `## What backs each bullet` map names
@@ -91,32 +94,90 @@ not in `profile/experience.md`; respect its `[check]` flags.
 **Against it.** The honest case. A file with no section arguing against is
 not research.
 
-**Warm paths.** From the export in `profile/network/export/` and rosters beside
-it, with names and roles, and who can actually reach the data org. **Grep the
-surname stem, not the surname.** `Brandvol` and `Brandvoll` are one letter apart,
-and searching the longer spelling turned a first-degree connection working at
-the company into a board claim that no connection existed, which then got
-counted as an instance of a shape it was not.
+**Paths.** A path is a route into the company through a friend: a friend
+working there, or a person there whose mutual connection is a friend. Friends
+are the first column of `profile/network/friends.md`, and every page this
+step loads is governed by `skills/source/gather-histories/linkedin.md`: the
+door check, the URL forms, where the company id sits, the limits, and the
+stop conditions all live there and none is restated here. Asked "who do I
+know at Acme?" outside a research run, run this step alone and file the same
+section; if `apply/<slug>/company.md` does not exist yet, create the
+directory and a file holding only the `## Paths` section and the closing line
+naming what was read.
 
-**The grep's result is never "none," and this step ends in a question rather
-than a verdict.** Three files declared no warm path and were wrong within a
+Before touching LinkedIn, grep the export in `profile/network/export/` for
+connections at the company, and read `roster-<company>.md` beside it whole
+if one exists: a roster is named for the company its rows left, so the
+company's name is in the file name and not the rows. Mark which hits are
+friends. Grep `profile/network/histories.md` too: a friend who used to
+work there is a path as well, since a friend is someone who would go to bat
+for the candidate at a company they left, and no LinkedIn search finds a
+former employee. Such a friend gets a row under **Friends there** with the
+years they were there in place of a title. **Grep the surname stem, not the
+surname.** `Brandvol` and
+`Brandvoll` are one letter apart, and searching the longer spelling turned a
+first-degree connection working at the company into a board claim that no
+connection existed, which then got counted as an instance of a shape it was
+not.
+
+Check the door, then **Stop here.** Show the candidate the company, the one
+search about to run, second degree at the company with no narrowing, and the
+friends there: the export's hits, and the former employees the rosters and
+`profile/network/histories.md` place there, each marked as which. Wait for
+go. Then load the company page for its id unless an earlier Paths section in
+the file already holds it, run the second-degree search, and read its first
+page. One search, because people searches are the scarce resource and the
+first degree is already in the export; a stale export gets a fresh export,
+not a search. No narrowing, because a results row names the mutual
+connection, so the friend rule filters the page without opening anyone,
+which is all narrowing was for. **A second-degree result counts only when
+its mutual connection is a friend.** A row whose named mutual is a friend
+is a path; one whose mutual is a mere connection is a name on a list,
+recorded by name and not opened; one that says several mutuals without
+naming them is listed as such. That rule is why
+`profile/network/friends.md` comes first. A second page only if the first
+was full and the candidate asks.
+
+**Stop here.** Show the shortlist, each person with their title and the
+friend they are reached through. Wait for go, or a struck name. Only then
+open the remaining profiles for headline and current role.
+
+Write `## Paths` in the company file in this shape. First a dated
+"Searched" line carrying the company id, the search with its result count,
+and how many profiles were opened; the rulebook reads that line to know a
+sitting happened. Then
+**Friends there**, either "None in the export, the rosters, or the
+histories" or a table of
+`| friend | title there | overlap with the candidate | profile |`, the
+overlap read against `profile/experience.md` and a former employee's years
+there standing in for a title. Then the through-a-friend
+table, `| person | title there | through | profile |`, one row per shortlisted
+person opened. Then **The candidate's pick**, dated. A search that finds
+nothing is written in full anyway, so "none" is a recorded search rather
+than an absence. End the step with the pick question below and the
+rulebook's page count line, whether the run finished or stopped.
+
+**The search's result is never "none," and this step ends in a question rather
+than a verdict.** Three files declared no path and were wrong within a
 day, by three different mechanisms: the person was in the candidate's own
 request; the person was in the export at another company and knew the CEO;
 the person worked at the company, was a former colleague, and had never been
 a first-degree connection. The export carries first-degree connections and
-their *current* employer, and the rosters carry whoever the candidate's own
-documents happened to name, so between them they cannot see a former
-colleague who never connected, anyone at one remove, or anyone the candidate
-knows outside work. Write what was actually searched, "nobody in the export
-works here," then **ask the candidate who might know someone there before the
-file is finished.** It is one question, it is cheap, and it was never asked in
-any of the three. Record the answer as theirs, dated.
+their *current* employer, the rosters carry whoever the candidate's own
+documents happened to name, and the search sees one remove only through a
+mutual connection, so between them they cannot see a former colleague who
+never connected or anyone the candidate knows outside work. Write what was
+actually searched, then **ask the candidate who might know someone there
+before the file is finished.** It is one question, it is cheap, and it was
+never asked in any of the three. Record the answer as theirs, dated, as the
+pick.
 
-**When the export returns more than one name at a company, do not pick one.**
+**When the export or a search returns more than one name at a company, do not
+pick one.**
 List them with their connection dates and ask which one the candidate actually
 knows. Picking on title match is the failure: one file named the Principal AI
 Scientist connected three years ago because the title fit the question it wanted
-answered, while the candidate's real contact was the Senior Director connected
+answered, while the candidate's real connection was the Senior Director connected
 nine years ago, sitting in the same export two rows away. The export carries no
 relationship strength except the connection date, so a title match is a guess
 about the wrong thing. Name them all, lead with the oldest connection, and let
@@ -156,12 +217,15 @@ not in that line, the claims in the file are not sourced.
 
 - Update the company's row on `board.md`: status, date, next action.
 - If the verdict is a pass, set the status to `passed` with the reason, dated.
-- **`watch` costs a channel row in `source/channels.md` in the same turn**, because
-  that row is the thing doing the watching. No slug you can verify against the
-  live board means no `watch`: the row is a `lead`, whatever else is true about
-  it, and a board with no fetcher yet is the same answer rather than an
+- **A company worth keeping with no seat leaves the board** and becomes a row in
+  `source/channels.md`'s `## Companies` table, which is the thing doing the
+  watching.
+  A board row is one company and one seat, so there is nothing to put in its
+  role cell. No slug you can verify against the live board means no fetched
+  row either: the company stays a `lead` on the board, whatever else is true
+  about it, and a board with no fetcher yet is the same answer rather than an
   exception.
-- Run `./scripts/check-citations.sh` and `./scripts/check-watch-rows.sh`.
+- Run `./scripts/check-citations.sh` and `./scripts/check-company-rows.sh`.
 - No em dashes anywhere in the file.
 
 ## Lessons, counting toward a third

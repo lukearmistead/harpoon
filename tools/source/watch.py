@@ -10,20 +10,38 @@ import re
 
 
 def band_floor(band):
-    """The bottom of a posted band in dollars, or None when none is posted.
+    """The bottom of a posted band in dollars, or None when none is posted."""
+    figures = _figures(band)
+    return int(min(figures)) if figures else None
+
+
+def _figures(band):
+    """Every plausible salary in a posted band, in dollars.
 
     Equity percentages are stripped before parsing rather than excluded by
     size, and a k anywhere means every bare figure is thousands too, so
     "$300-350k" starts at $300K rather than at $300.
     """
     if not band:
-        return None
+        return []
     figures = re.findall(r"(\d[\d,]*\.?\d*)\s*([kK])?",
                          re.sub(r"[\d.,]+\s*%", " ", band))
     scale = 1000 if any(suffix for _, suffix in figures) else 1
     dollars = [float(n.replace(",", "")) * scale for n, _ in figures]
-    plausible = [d for d in dollars if d >= 10_000]
-    return int(min(plausible)) if plausible else None
+    return [d for d in dollars if d >= 10_000]
+
+
+def band_top(band):
+    """The top of a posted band in dollars, or None when none is posted.
+
+    A watch compares floors, because a seat topping higher while starting lower
+    is worse than the one that caused the pass. Deciding whether an old
+    rejection is worth re-reading is the opposite question: the top is what says
+    a seat could pay enough, and a wide band like $129-331K is worth a read that
+    its floor would have hidden.
+    """
+    figures = _figures(band)
+    return int(max(figures)) if figures else None
 
 
 TERM = re.compile(r"\s*(title|band)\s*([~>])\s*(.+?)\s*$")

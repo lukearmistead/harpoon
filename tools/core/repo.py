@@ -8,7 +8,7 @@ the same way they stay out of a commit.
 import subprocess
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 def markdown(root=ROOT):

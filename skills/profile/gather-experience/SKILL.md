@@ -60,7 +60,7 @@ lands.
 **3. Write the interview down.** One dated file per session,
 `profile/interviews/YYYY-MM-DD-topic.md`: verbatim answers, who said what, what is
 still open. The fact base cites it as authority. Then run
-`python3 -m tools.notes` and write the session's one-line summary into
+`python3 -m tools.profile.notes` and write the session's one-line summary into
 `profile/interviews/index.md`, which is how anyone finds it later without opening
 every file in the directory. The generator adds the line; only the summary is
 yours, and `scripts/check-notes-index.sh` fails until it is written.

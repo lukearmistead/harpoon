@@ -9,6 +9,8 @@
       "Bash(./scripts/check-watch-rows.sh)",
       "Bash(skills/apply/write-application/render-application.sh:*)",
       "Bash(python3 -m tools.sweep:*)",
+      "Bash(python3 -m tools.friends:*)",
+      "Bash(python3 -m tools.histories:*)",
       "Bash(python3 -m tools.notes)",
       "Bash(python3 skills/source/sweep-jobs/find-former-colleagues.py:*)",
       "Bash(python3 skills/source/sweep-jobs/find-network-companies.py:*)",

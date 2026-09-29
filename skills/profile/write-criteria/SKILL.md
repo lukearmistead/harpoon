@@ -73,6 +73,16 @@ whatever order the conversation goes:
   Leave it behind and the gate goes on enforcing the old rule silently, which
   has already cost one run's worth of verdicts rejecting by hand what a stale
   gate should have dropped. The setup skill describes the file's shape.
+- **A labeled bullet that moved runs `python3 -m tools.source.sweep rejudge` the same
+  turn.** Every verdict already written was judged against the old sentence and
+  nothing else will ever notice. The command prints a bounded worklist and
+  decides nothing; it goes on `board.md`'s Todo under **Decisions, the
+  candidate's**. Between 2026-09-20 and 2026-09-25 this file was edited four
+  times, two of those edits reversed a rule, and no verdict moved.
+- **A bullet that moved and appears in a `Notes` cell re-reads those
+  rows.** `source/channels.md`'s `## Companies` table says why each company is shut
+  and what would reopen it, quoting this file's own words, so a reworded bullet
+  leaves a company closed on a sentence that no longer exists.
 
 ## Reruns
 

@@ -3,7 +3,7 @@
 import pytest
 from types import SimpleNamespace
 
-from tools import notes
+from tools.profile import notes
 
 
 def note(directory, name, heading):
@@ -13,10 +13,10 @@ def note(directory, name, heading):
 
 
 def test_index_lists_notes_newest_first(tmp_path):
-    note(tmp_path, "2026-08-23-quincy-thorne.md", "2026-08-23 Quincy Thorne")
+    note(tmp_path, "2026-08-23-mira-solano.md", "2026-08-23 Mira Solano")
     note(tmp_path, "2026-09-15-sable-finch.md", "2026-09-15 Sable Finch")
     body = notes.render(tmp_path)
-    assert body.index("Sable Finch") < body.index("Quincy Thorne")
+    assert body.index("Sable Finch") < body.index("Mira Solano")
     assert "**2026-09-15** [Sable Finch](2026-09-15-sable-finch.md)" in body
 
 
@@ -31,12 +31,12 @@ def test_a_written_summary_survives_regeneration(tmp_path):
     note(tmp_path, "2026-09-15-sable-finch.md", "2026-09-15 Sable Finch")
     (tmp_path / "index.md").write_text(notes.render(tmp_path))
     written = notes.render(tmp_path).replace(
-        notes.NEEDS_A_LINE, "a strategy lead on forecasting demand")
+        notes.NEEDS_A_LINE, "Harbor Systems' strategy lead on forecasting demand")
     (tmp_path / "index.md").write_text(written)
 
     note(tmp_path, "2026-09-16-later.md", "2026-09-16 Later")
     again = " ".join(notes.render(tmp_path).split())  # rewrapped, so normalize
-    assert "a strategy lead on forecasting demand" in again
+    assert "Harbor Systems' strategy lead on forecasting demand" in again
     assert again.count(notes.NEEDS_A_LINE) == 1
 
 

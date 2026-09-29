@@ -19,9 +19,12 @@ run() {
 }
 
 run citations ./scripts/check-citations.sh
-run "watch rows" ./scripts/check-watch-rows.sh
+run "company rows" ./scripts/check-company-rows.sh
+run "board shape" ./scripts/check-board-shape.sh
 run "open questions" ./scripts/check-open-questions.sh
 run "note indexes" ./scripts/check-notes-index.sh
+run "company index" ./scripts/check-company-index.sh
+run "judgment criterion" ./scripts/check-judgment-criterion.sh
 run voice ./scripts/check-voice.sh
 run "criteria length" ./scripts/check-criteria-length.sh
 

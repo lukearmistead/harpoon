@@ -26,20 +26,19 @@ profile/          who they are, and what they want
                   The cited authority for the fact base and the positioning
   meetings/       their notes from conversations
   documents/      raw source material
-  network/        LinkedIn export under export/, rosters beside it. These four
-                  carry an `index.md` from `tools.notes`: read it before
-                  opening anything here, and write the line for what you add
+  network/        LinkedIn export under export/; friends.md, histories.md and
+                  rosters beside it, all four indexed by `tools.notes`: read
+                  the index first, and write the line for what you add
 source/           where jobs come from
   channels.md     where the sweep looks and what it has learned about looking
   gates.md        the same stops in the words a posting uses, which is all the
                   sweep can read. Criteria wins when the two disagree
 apply/            one per company: company.md and its dated log, the
                   variant, the letter, form-fill.md, prep, debriefs, PDFs
-learn/runs/       one directory per run, and never exported. Every row carries
-                  empty adjudication columns for the decision the step should
-                  have made
+learn/runs/       one directory per run, never exported. Every row carries the
+                  empty adjudication columns the step's decision goes in
 learn/lessons.md  what a run taught when there was no row to put it in
-skills/           the nine procedures, grouped by the phase each serves. They
+skills/           the eleven procedures, grouped by the phase each serves. They
                   live here and nowhere else: do not restate them. An empty
                   skeleton means stop and name its skill
 tools/            the code an agent runs, tests/ beside it
@@ -61,8 +60,11 @@ scripts/          the checks git runs on commit. Each opens with a header
   adjudicates the row that made the call.
 - After any interview, prompt for a debrief into `apply/` while it is
   fresh. A fumbled question joins open questions, and prep loads all debriefs.
-- Warm paths: grep `profile/network/export/Connections.csv`, never re-derive.
-  Former-colleague rosters in `profile/network/`, rebuilt by sweep-jobs.
+- Paths: `profile/network/friends.md` first, then
+  `profile/network/histories.md` and the rosters, then the export by surname
+  stem; past that, research-company's Paths step searches LinkedIn. Never
+  re-derive by hand. A connection they call a friend in any conversation goes
+  into the friends file that turn.
 - Cheap tailoring must not become more applications: flag volume over depth.
 - Which seat to go after, and whether to override a skill's stop, are the
   candidate's calls. Recommend once, argue once if the record disagrees, then
@@ -77,6 +79,10 @@ scripts/          the checks git runs on commit. Each opens with a header
   looked up elsewhere in the repo is the wrong term. Say things plainly, in the
   words a person would use out loud, and give a sloppy sentence one rewritten
   line rather than three options.
+- Write to the candidate, not about the file. Fix a wrong fact in place and say
+  nothing: a line naming what the page used to say spends their attention on
+  the repo's history. The dated-correction rules are for verdicts and picks,
+  where the reasoning is the content, and for nothing else.
 
 ## The fact base
 

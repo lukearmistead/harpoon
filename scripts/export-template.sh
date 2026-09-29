@@ -50,7 +50,7 @@ rsync -aR --delete --exclude __pycache__ --exclude .pytest_cache \
 
 git -C "$tmp" add -A
 if git -C "$tmp" diff --cached --name-only |
-   grep -qE '^(profile/|source/|apply/|board\.md|learn/lessons\.md|learn/runs/[0-9])'; then
+   grep -qE '^(profile/|source/|apply/|board\.md|learn/lessons\.md|learn/rejections\.md|learn/runs/[0-9])'; then
   echo "refusing: a personal path reached the staging area" >&2
   exit 1
 fi

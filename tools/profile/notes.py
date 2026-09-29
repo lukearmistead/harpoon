@@ -1,7 +1,7 @@
 """Index the directories an agent would otherwise have to open file by file.
 
-    python3 -m tools.notes            rewrite every index
-    python3 -m tools.notes --check    fail if one is stale or unsummarized
+    python3 -m tools.profile.notes            rewrite every index
+    python3 -m tools.profile.notes --check    fail if one is stale or unsummarized
 
 Four directories, two shapes. `profile/meetings/` and `profile/interviews/` hold dated
 notes, one file per conversation, and their index is one line per note, newest
@@ -32,7 +32,8 @@ import sys
 import textwrap
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from tools.core.repo import ROOT
+
 DATED_DIRS = ("profile/meetings", "profile/interviews")
 MATERIAL_DIRS = ("profile/documents", "profile/network")
 START, END = "<!-- index:start -->", "<!-- index:end -->"
@@ -178,7 +179,7 @@ def check(directory, kind="dated"):
         return []
     problems = []
     if not index.exists() or index.read_text() != render(directory, kind):
-        problems.append(f"{index}: stale, run `python3 -m tools.notes`")
+        problems.append(f"{index}: stale, run `python3 -m tools.profile.notes`")
     pattern = DATED_ENTRY if kind == "dated" else MATERIAL_ENTRY
     for name, summary in existing(index, pattern).items():
         if NEEDS_A_LINE in summary:

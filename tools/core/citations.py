@@ -1,6 +1,6 @@
 """Every path this repo cites, checked against what is actually here.
 
-    python3 -m tools.citations
+    python3 -m tools.core.citations
 
 A rule that points at a missing file is a rule that silently never runs, so
 every backticked path and every markdown link has to resolve, whether it is
@@ -19,7 +19,7 @@ import re
 import sys
 from typing import NamedTuple
 
-from tools import repo
+from tools.core import repo
 
 ROOT = repo.ROOT
 
@@ -30,15 +30,19 @@ ROOT = repo.ROOT
 # the third time it was 118 dead citations in the exported template, because the
 # rules cite the board and the criteria on nearly every page and neither was
 # ever on this list.
-PER_INSTANCE = ("board.md", "learn/lessons.md",
+PER_INSTANCE = ("board.md", "learn/lessons.md", "learn/rejections.md",
                 "profile/criteria.md", "profile/experience.md",
                 "profile/resume.md", "profile/voice.md",
                 "profile/positioning.md",
                 "source/gates.md", "source/channels.md",
                 "profile/meetings/", "profile/interviews/",
                 "profile/documents/", "profile/network/",
+                "profile/network/friends.md", "profile/network/histories.md",
                 "profile/meetings/index.md", "profile/interviews/index.md",
                 "profile/documents/index.md", "profile/network/index.md",
+                # written by tools.apply.companies from the candidate's own company
+                # files, so a template that ships none cannot carry it either
+                "apply/index.md",
                 # bare, because four directories carry one and the rules name
                 # the file generically rather than picking one of the four
                 "index.md")

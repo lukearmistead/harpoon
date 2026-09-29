@@ -9,4 +9,4 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-exec python3 -m tools.notes --check
+exec python3 -m tools.profile.notes --check
