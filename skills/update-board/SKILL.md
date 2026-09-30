@@ -87,18 +87,33 @@ against three lines here.
 Two lines at most per item, the ask and the reason. The detail stays in the
 file it came from, which wins any disagreement, exactly as a board row does.
 
-Four blocks, in this order:
+**Two blocks, and it was four until 2026-09-29.** The candidate collapsed them
+himself, because sorting a short list by what kind of thing each line is costs
+him a read and buys nothing: the person, the seat and the question about his own
+record all end the same way, with him doing something.
 
-- **Messages**: a person to contact, and what to ask them.
-- **Applications, nothing blocking**: a seat to read or apply to.
-- **Fact base**: what only the candidate can answer about their own record. Every
-  `[ask: <Key>]` in `profile/` has a line here, and `scripts/check-open-questions.sh`
-  proves it. `[check]` items are yours to verify and do not belong here.
+- **One unlabelled list first**: a person to contact, a seat to read or apply to,
+  a fact only he can supply. Every `[ask: <Key>]` in `profile/` has a line here
+  and `scripts/check-open-questions.sh` proves it, which needs the key word on
+  the page and no heading above it. `[check]` items are yours to verify and do
+  not belong here at all.
 - **Decisions, the candidate's**: a call only they can make, each with a
-  recommendation. This is also where a rule change reaches them: `review-evals`
-  puts a repeated shape here as one line, the shape, its count and a
-  recommendation, and nothing in `learn/lessons.md` becomes a rule until they
-  answer it.
+  recommendation. **Five at most**, his instruction the same day, so a sixth
+  means ranking them and letting the weakest go back to the file it came from.
+  This is also where a rule change reaches them: `review-evals` puts a repeated
+  shape here as one line, the shape, its count and a recommendation, and nothing
+  in `learn/lessons.md` becomes a rule until they answer it. Two entries of one
+  shape are one line with the counts added, not two.
+
+A live interview sits above the list as a dated banner, because it is the one
+thing with a clock on it.
+
+**A sent message that has gone quiet is not a Todo line.** It lives in the log
+of the thing it is about, `apply/<company>/log.md` or the person's file in
+`profile/network/`, dated. It reaches this page only when it is blocked on him.
+A line about a message to a data scientist at a watched company is the worked
+example: message sent, no reply, no seat to chase, so there is nothing for him
+to do and the line came off.
 
 **Urgent only, and that is a hard filter.** A line earns its
 place by being blocked on them, ready to send, or a live seat worth acting on

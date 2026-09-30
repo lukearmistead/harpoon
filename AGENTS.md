@@ -22,8 +22,6 @@ profile/          who they are, and what they want
   resume.md       the master, never rewritten, only cut into a variant. Its
                   `## What backs each bullet` names the section behind each
                   claim: read the bullet, open the section only if it needs it
-  interviews/     how each settled answer was settled, whatever the occasion.
-                  The cited authority for the fact base and the positioning
   meetings/       their notes from conversations
   documents/      raw source material
   network/        LinkedIn export under export/; friends.md, histories.md and
@@ -35,6 +33,8 @@ source/           where jobs come from
                   sweep can read. Criteria wins when the two disagree
 apply/            one per company: company.md and its dated log, the
                   variant, the letter, form-fill.md, prep, debriefs, PDFs
+learn/interviews/ how each settled answer was settled, whatever the occasion.
+                  Cited by the fact base, the positioning, the criteria, apply/
 learn/runs/       one directory per run, never exported. Every row carries the
                   empty adjudication columns the step's decision goes in
 learn/lessons.md  what a run taught when there was no row to put it in
@@ -107,7 +107,7 @@ scripts/          the checks git runs on commit. Each opens with a header
   every number gets checked with them first.
 - A discrepancy any check surfaces is a question, never doubt: the mismatch
   usually carries a story, so it joins open questions as an interview prompt.
-  Check once, take their dated answer into `profile/interviews/` as the
+  Check once, take their dated answer into `learn/interviews/` as the
   authority, and point the superseded text at it.
 - `profile/network/export/Positions.csv` has dates at month precision; read it
   before asking. It outranks recollection but rows overlap: ask about them.

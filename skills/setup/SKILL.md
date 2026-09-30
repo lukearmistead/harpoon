@@ -49,7 +49,7 @@ sentence and what it is for.
 8. **`profile/positioning.md` and `profile/voice.md` exist.** Positioning
    holds the picks in force, which every drafting skill loads first. Create it
    with a heading and the line saying that a pick states the rule and names
-   the `profile/interviews/` file that settled it; `gather-experience` fills
+   the `learn/interviews/` file that settled it; `gather-experience` fills
    it. Then `profile/voice.md`, same treatment. It holds both halves of the
    voice, which `AGENTS.md` and every drafting skill point at: the register to
    match, quoted from something they wrote, the tells that give an LLM away,
@@ -70,7 +70,7 @@ sentence and what it is for.
     instance still has them to remove by hand.
 11. **The indexes exist once there is anything to index.** `python3 -m
     tools.profile.notes` writes an `index.md` in `profile/meetings/`,
-    `profile/interviews/`, `profile/documents/` and `profile/network/`, and
+    `learn/interviews/`, `profile/documents/` and `profile/network/`, and
     skips a directory with nothing in it yet. The template ships none of them,
     because they name real people and real documents; the rules that cite them
     ship anyway, and `tools/core/citations.py` carries the list of every path

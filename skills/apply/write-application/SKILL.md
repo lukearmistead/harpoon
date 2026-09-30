@@ -99,7 +99,7 @@ have gone to another company. If yes, the first paragraph is wrong.
   only if step 5 wrote a letter. Each ends with a `<!-- cut -->`
   marker, then the seat metadata and a line naming what was read to write
   it; the renderer drops everything after the marker.
-- Append a dated entry to the company file's log: what was drafted, the
+- Append a dated entry to `apply/<slug>/log.md`: what was drafted, the
   open questions, the URL.
 - Render with `render-application.sh <slug>` in this directory. Layout is
   `resume.typ` beside it, so the markdown stays diffable. Check the

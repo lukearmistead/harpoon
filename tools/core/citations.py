@@ -35,10 +35,10 @@ PER_INSTANCE = ("board.md", "learn/lessons.md", "learn/rejections.md",
                 "profile/resume.md", "profile/voice.md",
                 "profile/positioning.md",
                 "source/gates.md", "source/channels.md",
-                "profile/meetings/", "profile/interviews/",
+                "profile/meetings/", "learn/interviews/",
                 "profile/documents/", "profile/network/",
                 "profile/network/friends.md", "profile/network/histories.md",
-                "profile/meetings/index.md", "profile/interviews/index.md",
+                "profile/meetings/index.md", "learn/interviews/index.md",
                 "profile/documents/index.md", "profile/network/index.md",
                 # written by tools.apply.companies from the candidate's own company
                 # files, so a template that ships none cannot carry it either

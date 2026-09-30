@@ -53,6 +53,24 @@ def test_entry_lifts_prose_verbatim(tmp_path):
     assert "applied" in out and "2026-09-01" in out
 
 
+def test_a_link_beside_the_company_file_still_resolves_from_the_index(tmp_path):
+    """A company file links its own siblings by bare name, and copied verbatim
+    into apply/index.md that link pointed at a file one directory up."""
+    (tmp_path / "board.md").write_text(BOARD)
+    write(tmp_path, "acme-health", """
+        # Acme Health
+
+        **Verdict: apply.** See [the prep](prep.md) and [the site](https://acme.com).
+
+        ## Next
+
+        Send it.
+        """)
+    out = companies.build(tmp_path)
+    assert "[the prep](../apply/acme-health/prep.md)" in out
+    assert "[the site](https://acme.com)" in out
+
+
 def test_heading_aliases_and_prefixes_match(tmp_path):
     (tmp_path / "board.md").write_text(BOARD)
     write(tmp_path, "acme-health", """

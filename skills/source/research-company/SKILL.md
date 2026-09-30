@@ -13,8 +13,8 @@ alone. This runs after sweep-jobs, on names the candidate has said should
 advance. Do not run it on a list.
 
 Read `profile/criteria.md` first. If it is empty, stop and run write-criteria.
-Read the existing company file if there is one, and treat its dated log as
-history to append to rather than overwrite.
+Read the existing company file if there is one, and the log beside it at
+`apply/<slug>/log.md`. That log is history to append to rather than overwrite.
 
 ## The hard lines, before anything else
 
@@ -189,7 +189,9 @@ beats anything in a private folder.
 
 **Next.** One action, naming a person or a posting.
 
-**A dated log at the bottom**, appended to rather than rewritten.
+**A dated log at `apply/<slug>/log.md`**, appended to rather than rewritten.
+The company file states what is true now and the log says when each thing
+changed, so a pointer line at the bottom of the company file names the log.
 
 **A closing line naming what was read to write the file.** If the fact base is
 not in that line, the claims in the file are not sourced.

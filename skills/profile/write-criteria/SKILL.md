@@ -1,6 +1,6 @@
 ---
 name: write-criteria
-description: Elicit and maintain profile/criteria.md, the statement of what the candidate is looking for and how they want to be worked with. Mines the fact base first, interviews the candidate for what it cannot answer, records the session in profile/interviews/, and writes the file. Use after gather-experience on first run, when the candidate says their criteria changed, when a meeting changes what they want, or when the same rule gets overridden repeatedly on the board.
+description: Elicit and maintain profile/criteria.md, the statement of what the candidate is looking for and how they want to be worked with. Mines the fact base first, interviews the candidate for what it cannot answer, records the session in learn/interviews/, and writes the file. Use after gather-experience on first run, when the candidate says their criteria changed, when a meeting changes what they want, or when the same rule gets overridden repeatedly on the board.
 ---
 
 # Write criteria
@@ -55,7 +55,7 @@ whatever order the conversation goes:
 
 ## Write it down
 
-- The interview lands in `profile/interviews/YYYY-MM-DD-criteria.md`: verbatim
+- The interview lands in `learn/interviews/YYYY-MM-DD-criteria.md`: verbatim
   answers, what is still open.
 - The file itself follows the skeleton already in `profile/criteria.md`: hard
   lines first, then what they bring, the named tests, the seat, strong

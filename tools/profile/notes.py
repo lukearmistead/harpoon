@@ -3,7 +3,7 @@
     python3 -m tools.profile.notes            rewrite every index
     python3 -m tools.profile.notes --check    fail if one is stale or unsummarized
 
-Four directories, two shapes. `profile/meetings/` and `profile/interviews/` hold dated
+Four directories, two shapes. `profile/meetings/` and `learn/interviews/` hold dated
 notes, one file per conversation, and their index is one line per note, newest
 first. `profile/documents/` and `profile/network/` hold imported material, 257 files of
 it, mostly spreadsheets and documents nothing here can read: their index is one
@@ -34,7 +34,7 @@ from pathlib import Path
 
 from tools.core.repo import ROOT
 
-DATED_DIRS = ("profile/meetings", "profile/interviews")
+DATED_DIRS = ("profile/meetings", "learn/interviews")
 MATERIAL_DIRS = ("profile/documents", "profile/network")
 START, END = "<!-- index:start -->", "<!-- index:end -->"
 # one token on purpose: wrapped across two lines it could not be grepped,

@@ -15,7 +15,7 @@ write-application.
   is empty, stop and run gather-experience: nothing reaches the resume that is
   not in the fact base.
 - `profile/voice.md` before any prose.
-- The `profile/interviews/` file a pick names, when a pick looks wrong. It holds
+- The `learn/interviews/` file a pick names, when a pick looks wrong. It holds
   what was already tried and dropped, which is what stops a settled question
   from being reopened.
 - `profile/criteria.md`, for the problems every bullet gets judged against. If it

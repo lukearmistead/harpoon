@@ -136,12 +136,12 @@ you decide whether to make it.
 
 ```
 board.md          the board and the only todo list
-profile/          yours: criteria, fact base, resume, voice, interviews,
-                  meeting notes, raw documents, LinkedIn export, friends
-                  and their histories
+profile/          yours: criteria, fact base, resume, voice, meeting notes,
+                  raw documents, LinkedIn export, friends and their histories
 source/           where jobs come from, and the words the sweep filters on
 apply/            one directory per company that advances
-learn/            one directory per sweep run, where calls get graded
+learn/            how each settled answer was settled, and one directory per
+                  sweep run, where calls get graded
 skills/           the eleven procedures the copilot follows
 tools/            the code in five packages, with tests/ beside it
   core/           the pieces every other package uses

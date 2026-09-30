@@ -109,7 +109,13 @@ def verdict(text):
     return re.sub(r"^\*\*Verdict[,:]?\s*", "**", paragraph(match.group(0)))
 
 
+def rebase_links(text, slug):
+    """Point a bare sibling link at its file, since the index sits one level up."""
+    return re.sub(r"\]\(([^)/:#]+)\)", rf"](../apply/{slug}/\1)", text)
+
+
 def entry(slug, text, row):
+    text = rebase_links(text, slug)
     status, date, _ = row or ("**no board row**", "", False)
     head = f"### [{slug}](../apply/{slug}/company.md) . {status}"
     lines = [head + (f" . {date}" if date else ""), ""]

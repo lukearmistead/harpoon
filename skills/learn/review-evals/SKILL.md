@@ -25,6 +25,14 @@ file, not in any eval row, and would have missed it by starting with the data.
 the entries are where the things with no eval row live. Read it beside the
 adjudicated rows, not instead of them.
 
+`learn/runs/index.md` before any run directory. One line per run: mode, date,
+channels read, rows recorded, rows adjudicated. It is how to see which runs
+carry grades and which carry none without opening every CSV under there, and
+the adjudicated count is read the same way `tools/learn/evals.py` reads it, so
+it agrees with the report in step 2. `python3 -m tools.learn.runs` rewrites it
+and `scripts/check-runs-index.sh` fails when it is stale, so re-run the
+generator after grading anything.
+
 ## Step 1: Check that the recorded fixes happened
 
 The highest-yield move, and it goes first because everything downstream trusts
@@ -46,9 +54,11 @@ Knowing which claims hold is what makes the failures legible.
 ## Step 2: Count before concluding
 
 `python3 -m tools.source.sweep grades` is the standing report: rows and calls per
-decision, confirmed against overturned, and every shape with its count. Beyond
-it, per run and by hand: how many decisions carry a recorded reason at all, how
-many are graded, and how many rows are one call wearing many hats.
+decision, confirmed against overturned, and every shape with its count. For the
+per-run split, `learn/runs/index.md` already holds rows and graded rows for
+every run, so read it and open only the runs it says carry grades. What is left
+to count by hand is how many decisions carry a recorded reason at all, and how
+many rows are one call wearing many hats.
 
 **Identical text across rows is one call, not many.** Nineteen rows in one run
 carried a byte-identical note, and it was a single finding about a sourcing

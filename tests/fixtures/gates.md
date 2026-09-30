@@ -19,7 +19,8 @@ alameda, walnut creek, fremont, hayward
 ```
 machine learning, "ml", "ai", data scien, applied scien, research scien,
 data engineer, deep learning, "nlp", "llm", forward deployed,
-forward-deployed, decision scien
+forward-deployed, decision scien, research engineer, evaluation, "evals",
+technical staff
 ```
 
 ## ic-seat
@@ -35,7 +36,7 @@ internship, new grad
 platform, infrastructure, "infra", devops, "sre", reliability,
 solutions architect, solutions engineer, account executive, "sales", "gtm", go-to-market,
 support engineer, support specialist, advocate, security, appsec, "soc",
-recruiter, marketing, designer, "counsel", evaluator, partnerships, enablement
+recruiter, marketing, designer, "counsel", partnerships, enablement
 ```
 
 ## foreign-remote

@@ -1,12 +1,12 @@
 ---
 name: gather-experience
-description: Build the experience corpus and the fact base. Reads the raw documents in profile/documents/, interviews the candidate to fill the holes, records each session in profile/interviews/, and writes the fact base at profile/experience.md. Runs first, because the criteria and the resume are both built from what it gathers. Use when new source material arrives, when a hole in the fact base surfaces, or when the candidate corrects something already written.
+description: Build the experience corpus and the fact base. Reads the raw documents in profile/documents/, interviews the candidate to fill the holes, records each session in learn/interviews/, and writes the fact base at profile/experience.md. Runs first, because the criteria and the resume are both built from what it gathers. Use when new source material arrives, when a hole in the fact base surfaces, or when the candidate corrects something already written.
 ---
 
 # Gather experience
 
 Three artifacts, each sourced from the one before it: documents the candidate
-drops in `profile/documents/`, the interview record in `profile/interviews/`, the fact
+drops in `profile/documents/`, the interview record in `learn/interviews/`, the fact
 base `profile/experience.md`. This runs before write-criteria and write-resume,
 because both are built from the fact base: one interview here saves the
 candidate telling the same stories twice.
@@ -15,7 +15,7 @@ candidate telling the same stories twice.
 
 - `profile/positioning.md`, the picks in force, then `profile/experience.md` as it
   stands.
-- `profile/interviews/`, for anything said since the fact base was written.
+- `learn/interviews/`, for anything said since the fact base was written.
 - `profile/meetings/`, for market signal the fact base cannot supply on its own.
 
 If `profile/documents/` is empty and the fact base is too, say so and ask for
@@ -58,10 +58,10 @@ middle, precise at the edges: read every number back verbatim before it
 lands.
 
 **3. Write the interview down.** One dated file per session,
-`profile/interviews/YYYY-MM-DD-topic.md`: verbatim answers, who said what, what is
+`learn/interviews/YYYY-MM-DD-topic.md`: verbatim answers, who said what, what is
 still open. The fact base cites it as authority. Then run
 `python3 -m tools.profile.notes` and write the session's one-line summary into
-`profile/interviews/index.md`, which is how anyone finds it later without opening
+`learn/interviews/index.md`, which is how anyone finds it later without opening
 every file in the directory. The generator adds the line; only the summary is
 yours, and `scripts/check-notes-index.sh` fails until it is written.
 
@@ -78,7 +78,7 @@ thing learned, and collapsing it is how the fact base grew to 2,785 lines.
 - **The pick goes in `profile/positioning.md`**, stated as the rule in force and
   nothing more. No chain of drafts, no dates on who changed what, no argument
   that lost: a reader wants what to write, not how it was decided.
-- **How it was settled goes in `profile/interviews/`**, not into the fact base. The
+- **How it was settled goes in `learn/interviews/`**, not into the fact base. The
   chain of drafts, the version that lost, the objection that was overruled:
   all of it dated, and named from the pick it produced so the pick is one line
   with a pointer rather than a page of history. A pick in `profile/positioning.md`
@@ -102,7 +102,7 @@ not weaker.
   that changed between cycles) and the story is fact-base material. A
   second assertion wins without re-litigating.
 - **Then it is the source of truth.** Record it as a dated entry in
-  `profile/interviews/`, leave the superseded version with a pointer to what
+  `learn/interviews/`, leave the superseded version with a pointer to what
   replaced it, and update the fact base and everything downstream that turn.
 - Elsewhere the repo flags a contradiction and leaves both standing. Not
   here.
@@ -120,8 +120,10 @@ name what runs next. An empty `profile/criteria.md` means write-criteria; a stal
 
 **File the questions where the candidate will see them.** This skill writes the
 open questions list, and that list is not a page they read. Any entry only they
-can answer gets `[ask: <Key>]` and a matching line on `board.md`'s Todo under
-Fact base, one or two lines, while the detail stays here. The rest keep
+can answer gets `[ask: <Key>]` and a matching line on `board.md`'s Todo, one or
+two lines, while the detail stays here. There is no Fact base block any more:
+the Todo is one flat list, and the check wants the key word on the page rather
+than a heading above it. The rest keep
 `[check]`, which is yours to verify. `./scripts/check-open-questions.sh` proves
 the tagged ones landed.
 

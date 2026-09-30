@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# `profile/meetings/` and `profile/interviews/` each carry an index.md so an agent can
+# `profile/meetings/` and `learn/interviews/` each carry an index.md so an agent can
 # see what is in the directory without opening every file in it. This asserts
 # the index is current and that every note in it has a summary written by a
 # person, which is the one line no generator can supply.
